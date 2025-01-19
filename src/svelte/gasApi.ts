@@ -1,30 +1,57 @@
 
 export const GoogleAppsScript = {
   
-     getActiveUserEmail(): Promise<string> {
+     doSomething(): Promise<number> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: number) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .doSomething();
+      });
+    },
+
+     test(): Promise<string> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: string) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .getActiveUserEmail();
+          .test();
       });
     },
 
-     testMe(number: number): Promise<number> {
+     readData(): Promise<{ activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: number) => resolve(result))
+          .withSuccessHandler((result: { activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .testMe(number);
+          .readData();
       });
     },
 
-     foo(s: string): Promise<number> {
+     addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): Promise<void> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: number) => resolve(result))
+          .withSuccessHandler((result: void) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .foo(s);
+          .addMockData(activityPrefs, peerPrefs, nstudents, nactivities);
+      });
+    },
+
+     setupPreferencesSheet(activity_preferences: number, peer_preferences: number): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .setupPreferencesSheet(activity_preferences, peer_preferences);
+      });
+    },
+
+     setupActivitiesSheet(): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .setupActivitiesSheet();
       });
     }
 }

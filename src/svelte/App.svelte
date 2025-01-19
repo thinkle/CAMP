@@ -1,41 +1,41 @@
 <script lang="ts">
-  import Counter from "./lib/Counter.svelte";
-  import { Block, Icon, work } from "google-apps-script-svelte-components";
-  import { parseContext } from "./lib/parseContext";
+  import DataPreview from './DataPreview.svelte';
+
+	import type { StudentPreferences, Activity } from './../types.ts';
+  import SetupSheets from './SetupSheets.svelte';
+
+  import { Block, Icon } from "google-apps-script-svelte-components";  
   import { GoogleAppsScript } from "./gasApi";
   import { onMount } from "svelte";
-  let email;
-  let contextString = `<? context ?>`;
-  let context = parseContext(contextString);
-  onMount(async () => {
-    email = await GoogleAppsScript.getActiveUserEmail();
-  });
+  import { Button } from "contain-css-svelte";
+  import "contain-css-svelte/vars/defaults.css"
+  import "contain-css-svelte/vars/themes/light.css"
+  import "contain-css-svelte/vars/themes/typography-airy.css"    
+  
+  let data : {
+    studentPreferences: StudentPreferences[],
+    activities: Activity[],
+  };
+  const readData = async () => {
+    data = await GoogleAppsScript.readData();
+  }
 </script>
 
 <main>
-  <h1>Vite + Svelte + AppsScript</h1>
+  <h1>CAMP</h1>
   <Block>
-    <h2>I am a Svelte Component</h2>
-    <Counter />
-    <br />
-    <a href="https://learn.svelte.dev/tutorial/welcome-to-svelte">
-      Learn Svelte
-    </a>
+    <h2>The Companion & Activity Matching Planner</h2>            
+  </Block>  
+  <Block>
+    <SetupSheets></SetupSheets>
   </Block>
   <Block>
-    <h2>I am a Material Icon</h2>
-    <Icon fontSize="32px" icon={work.round} />
+    <Button on:click={readData} >Load Data</Button>
+    <DataPreview {data}></DataPreview>
   </Block>
   <Block>
-    <h2>I am an Apps Script Call</h2>
-    {#if email}
-      Why, hello there, {email}. Look, I made an API call!
-    {/if}
-  </Block>
-  <Block>
-    Wow, we are in a {context.container}
-    being run from {context.addOn}.
-  </Block>
+    <Button >Build/Improve Schedule</Button>    
+  </Block>  
   <div>
     <span class="gray">
       Created with

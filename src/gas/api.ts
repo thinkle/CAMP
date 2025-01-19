@@ -3,6 +3,8 @@ google.script.run here -- this will allow our type
 definition magic to work, so in your svelte side code
 you get clean autocomplete for google.script.run */
 
+export { readData } from "./readData";
+
 export { addMockData } from "./mockData";
 
 export { setupPreferencesSheet, setupActivitiesSheet } from "./setupSheets";

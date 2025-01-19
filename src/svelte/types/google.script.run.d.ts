@@ -4,9 +4,12 @@ declare namespace google.script {
       withFailureHandler(callback: (error: Error, object?: any) => void): this;
       withSuccessHandler(callback: (value: any, object?: any) => void): this;
       withUserObject(object: Object): this;
-      getActiveUserEmail(): void;
-  testMe(number: number): void;
-  foo(s: string): void
+      doSomething(): void;
+  test(): void;
+  readData(): void;
+  addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): void;
+  setupPreferencesSheet(activity_preferences: number, peer_preferences: number): void;
+  setupActivitiesSheet(): void
   }
   const run : GoogleScriptRun;
 
