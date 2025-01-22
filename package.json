@@ -44,6 +44,7 @@
     "contain-css-svelte": "^0.0.14",
     "google-apps-script-run-ts-mocks": "^0.0.3",
     "google-apps-script-svelte-components": "^0.0.3",
-    "svelte": "4.2.2"
+    "svelte": "4.2.2",
+    "vitest": "^3.0.3"
   }
 }

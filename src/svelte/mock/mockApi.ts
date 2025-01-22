@@ -1,5 +1,5 @@
 
-import { generateAllMockData } from '../../scheduler/mockDataGenerator';
+import { generateAllMockData } from '../../scheduler/mocks/mockDataGenerator';
 
 export function setupPreferencesSheet(activity_preferences: number, peer_preferences: number): void {
   
@@ -23,8 +23,8 @@ export function test(): string {
 
 export function readData(): { activities: Activity[]; studentPreferences: StudentPreferences[]; } {
   const { activityNames, activityCapacities, rawStudents } = generateAllMockData(
-    5,  // nactivities
-    10, // nstudents
+    50,  // nactivities
+    400, // nstudents
     4,  // activityPrefs
     4   // peerPrefs
   );

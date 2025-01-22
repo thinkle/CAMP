@@ -1,6 +1,6 @@
 // scheduler/mockDataGenerator.ts
 
-import { Activity, StudentPreferences } from '../types';  // Adjust path as needed
+import { Activity, StudentPreferences } from '../../types';  // Adjust path as needed
 
 /** 
  * Internal type just for the raw student generation process

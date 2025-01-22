@@ -15,4 +15,10 @@ export type ActivityPreference = {
     activity: string;
     capacity: number;
   };
+  export type Assignment = {
+    activity: string;
+    student: string;
+  }
+
+  export type Schedule = Assignment[];
   

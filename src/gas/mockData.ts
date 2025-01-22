@@ -1,7 +1,7 @@
 // scheduler/addMockData.ts
 
 import { getActivitiesSheet, getPreferencesSheet, setupActivitiesSheet, setupPreferencesSheet } from '../gas/setupSheets';
-import { generateAllMockData } from '../scheduler/mockDataGenerator';
+import { generateAllMockData } from '../scheduler/mocks/mockDataGenerator';
 import type { StudentPreferences, Activity } from '../types';
 
 export function addMockData(

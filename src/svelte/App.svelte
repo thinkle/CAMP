@@ -1,4 +1,6 @@
 <script lang="ts">
+  import HeuristicTester from './HeuristicTester.svelte';
+
   import DataPreview from './DataPreview.svelte';
 
 	import type { StudentPreferences, Activity } from './../types.ts';
@@ -16,8 +18,12 @@
     studentPreferences: StudentPreferences[],
     activities: Activity[],
   };
+
+  
   const readData = async () => {
     data = await GoogleAppsScript.readData();
+    console.log('Read data',data);
+    
   }
 </script>
 
@@ -31,11 +37,14 @@
   </Block>
   <Block>
     <Button on:click={readData} >Load Data</Button>
-    <DataPreview {data}></DataPreview>
+    
   </Block>
   <Block>
+    <HeuristicTester {data}></HeuristicTester>
     <Button >Build/Improve Schedule</Button>    
-  </Block>  
+  </Block>
+  <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
+  <DataPreview {data}></DataPreview>
   <div>
     <span class="gray">
       Created with
