@@ -22,3 +22,11 @@ export type ActivityPreference = {
 
   export type Schedule = Assignment[];
   
+  export type ScheduleInfo = {
+    schedule : Schedule,
+    score : number,
+    alg : string,
+    invalid : string | null,
+    generation : number,
+    id : string,
+ }

@@ -2,18 +2,12 @@ import { assignByActivity } from "../heuristics/activityFirstHeuristic";
 import { assignByPeer } from "../heuristics/peerFirstHeuristic";
 import { assignByPriority } from "../heuristics/assignByPriority";
 import { assignByCohorts } from "../heuristics/assignByCohorts";
-import type { Schedule, Activity, StudentPreferences } from "../../types";
+import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../../types";
 import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { scheduleToId } from "./scheduleSaver";
 
 
-let schedules : {
-    schedule : Schedule,
-    score : number,
-    alg : string,
-    invalid : string | null
- }[] = [];
-
+let schedules : ScheduleInfo[] = [];
 let activities : Activity[] = [];
 
 const assignByCohortMinSize = (prefs : StudentPreferences[], activities : Activity[]) : Schedule => {
@@ -34,13 +28,6 @@ const assignByTens = (prefs : StudentPreferences[], activities : Activity[]) : S
     return assignByCohorts(prefs, activities, 10);
 }
 
-type ScheduleInfo = {
-    schedule : Schedule,
-    score: number,
-    invalid : string | null,
-    alg : string,
-    id : string,
-}
 
 export const generateSchedulesFromHeuristics = (
     nrounds : number, 
@@ -69,7 +56,8 @@ export const generateSchedulesFromHeuristics = (
                         score : scoreSchedule(schedule, prefs),
                         invalid : validateSchedule(schedule, activities),
                         alg : alg.name,
-                        id
+                        id,
+                        generation: 0,
                     });
                 } else {
                     console.log("Ignoring duplicate schedule");

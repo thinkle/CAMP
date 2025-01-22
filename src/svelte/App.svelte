@@ -40,8 +40,7 @@
     
   </Block>
   <Block>
-    <HeuristicTester {data}></HeuristicTester>
-    <Button >Build/Improve Schedule</Button>    
+    <HeuristicTester {data}></HeuristicTester>    
   </Block>
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
   <DataPreview {data}></DataPreview>

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { generateSchedulesFromHeuristics } from './../scheduler/hillclimbing/generator.ts';
+	import { evolveSchedules } from './../scheduler/hillclimbing/evolveSchedules.ts';
+	import { generateSchedulesFromHeuristics } from './../scheduler/hillclimbing/generator.ts';  
 	import { scoreSchedule, validateSchedule } from './../scheduler/';
   import DataPreview from './DataPreview.svelte';
 
@@ -45,6 +46,21 @@
     }
   }
 
+  function doEvolve () {
+    let startNum = schedules.length;
+    schedules = evolveSchedules(schedules, data.studentPreferences, data.activities, 500)
+    console.log('Generated',schedules.slice(startNum),'new schedules');
+    for (let s of schedules.slice(startNum)) {
+        if (s.score > score || !score && !s.invalid) {
+            schedule = s.schedule;
+            score = s.score;
+            alg = s.alg;
+            invalid = s.invalid;
+        }
+    }
+  }
+
+
   function doAssignByActivity () {
     error = undefined;
     console.log('Got prefs',data.studentPreferences)
@@ -76,6 +92,7 @@
 
 <div class="tester">
     <Button on:click={doGenerate}>Generate Some!</Button>
+    <Button on:click={doEvolve}>Evolve Some!</Button>
     <Button on:click={doAssignByActivity}>Assign by Activity</Button>
     <Button on:click={doAssignByPeer}>Assign by Peer</Button>
     {#if error}
