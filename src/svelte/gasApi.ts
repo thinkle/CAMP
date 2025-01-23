@@ -10,6 +10,15 @@ export const GoogleAppsScript = {
       });
     },
 
+     getWorkerScript(): Promise<string> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: string) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getWorkerScript();
+      });
+    },
+
      readBuildData(): Promise<import("../types").ScheduleInfo[]> {
       return new Promise((resolve, reject) => {
         google.script.run

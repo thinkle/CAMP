@@ -1,4 +1,6 @@
 <script lang="ts">
+  import WorkerManager from './WorkerManager.svelte';
+
   import ScheduleBuilder from './ScheduleBuilder.svelte';
 
   import DataPreview from './DataPreview.svelte';
@@ -39,8 +41,12 @@
     <Button on:click={readData} >Load Preferences</Button>    
   </Block>
   <Block>
+    <WorkerManager {data}></WorkerManager>
+  </Block>
+  <Block>
     <ScheduleBuilder {data}></ScheduleBuilder>    
   </Block>
+
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
   <DataPreview {data}></DataPreview>
   <div>

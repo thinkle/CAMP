@@ -1,5 +1,7 @@
 
 import { generateAllMockData } from '../../scheduler/mocks/mockDataGenerator';
+import workerText from '../../../dist/worker.js.html?raw';
+
 
 export function setupPreferencesSheet(activity_preferences: number, peer_preferences: number): void {
   
@@ -61,4 +63,8 @@ export function writeBuildData(schedules: import("/Users/thinkle/BackedUpProject
 
 export function clearBuildData(): void {
   
+}
+
+export function getWorkerScript(): string {
+  return workerText;
 }

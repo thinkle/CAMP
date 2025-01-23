@@ -13,3 +13,6 @@ export { setupPreferencesSheet, setupActivitiesSheet } from "./setupSheets";
 
 export function doSomething () { return 10}
 
+export function getWorkerScript() {
+  return HtmlService.createHtmlOutputFromFile("worker.js.html").getContent();
+}

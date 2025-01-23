@@ -9,7 +9,7 @@
     "post-build": "cp ./appsscript.json.bak ./dist/appsscript.json && rm ./appsscript.json.bak",
     "build-svelte": "vite build",
     "build-gas": "vite build --config vite.config.gas.ts",
-    "build": "npm-run-all pre-build build-svelte build-gas post-build",
+    "build": "npm-run-all pre-build build-svelte build-gas build-worker post-build",
     "upload": "cd dist && npx clasp push --rootDir ./",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -17,6 +17,7 @@
     "push-to-clasp": "npm run build && clasp push",
     "watch:all": "chokidar 'src/gas/api.ts' -c 'npm run build:all'",
     "build:all": "npm-run-all build-types build-mocks build-gas-api",
+    "build-worker": "vite build --config vite.config.worker.ts",
     "build-gas-api": "create-client-api src/gas/api.ts src/svelte/gasApi.ts",
     "build-types": "add-google-run-types src/gas/api.ts src/svelte/types/google.script.run.d.ts",
     "build-mocks": "add-google-run-mocks src/gas/api.ts src/svelte/mock/mockApi.ts"

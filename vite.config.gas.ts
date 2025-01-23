@@ -14,5 +14,6 @@ export default defineConfig({
     },
     minify: false,
     target: "es2020",
+    emptyOutDir: false, // Avoid wiping other files in dist/
   },
 });

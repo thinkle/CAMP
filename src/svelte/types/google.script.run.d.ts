@@ -5,6 +5,7 @@ declare namespace google.script {
       withSuccessHandler(callback: (value: any, object?: any) => void): this;
       withUserObject(object: Object): this;
       doSomething(): void;
+  getWorkerScript(): void;
   readBuildData(): void;
   writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): void;
   clearBuildData(): void;
