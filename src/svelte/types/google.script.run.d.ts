@@ -5,7 +5,9 @@ declare namespace google.script {
       withSuccessHandler(callback: (value: any, object?: any) => void): this;
       withUserObject(object: Object): this;
       doSomething(): void;
-  test(): void;
+  readBuildData(): void;
+  writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): void;
+  clearBuildData(): void;
   readData(): void;
   addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): void;
   setupPreferencesSheet(activity_preferences: number, peer_preferences: number): void;

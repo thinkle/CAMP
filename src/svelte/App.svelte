@@ -1,5 +1,5 @@
 <script lang="ts">
-  import HeuristicTester from './HeuristicTester.svelte';
+  import ScheduleBuilder from './ScheduleBuilder.svelte';
 
   import DataPreview from './DataPreview.svelte';
 
@@ -22,9 +22,9 @@
   
   const readData = async () => {
     data = await GoogleAppsScript.readData();
-    console.log('Read data',data);
-    
+    console.log('Read data',data);    
   }
+
 </script>
 
 <main>
@@ -36,11 +36,10 @@
     <SetupSheets></SetupSheets>
   </Block>
   <Block>
-    <Button on:click={readData} >Load Data</Button>
-    
+    <Button on:click={readData} >Load Preferences</Button>    
   </Block>
   <Block>
-    <HeuristicTester {data}></HeuristicTester>    
+    <ScheduleBuilder {data}></ScheduleBuilder>    
   </Block>
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
   <DataPreview {data}></DataPreview>

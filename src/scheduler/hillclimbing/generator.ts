@@ -5,6 +5,7 @@ import { assignByCohorts } from "../heuristics/assignByCohorts";
 import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../../types";
 import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { scheduleToId } from "./scheduleSaver";
+import { createScheduleInfo } from "./scheduleInfo";
 
 
 let schedules : ScheduleInfo[] = [];
@@ -47,18 +48,14 @@ export const generateSchedulesFromHeuristics = (
             try {
                 let shuffledPrefs = [...prefs];
                 shuffledPrefs.sort(() => Math.random() - 0.5);
-                let schedule = alg(shuffledPrefs, activities);
-                let id = scheduleToId(schedule, activities);
-                if (!existingIds.has(id)) {
-                    existingIds.add(id);
-                    schedules.push({
-                        schedule,
-                        score : scoreSchedule(schedule, prefs),
-                        invalid : validateSchedule(schedule, activities),
-                        alg : alg.name,
-                        id,
-                        generation: 0,
-                    });
+                let schedule = alg(shuffledPrefs, activities);                
+                let info = createScheduleInfo(
+                    schedule,
+                    prefs, activities, alg.name, 0
+                );
+                if (!existingIds.has(info.id)) {
+                    existingIds.add(info.id);
+                    schedules.push(info);
                 } else {
                     console.log("Ignoring duplicate schedule");
                 }

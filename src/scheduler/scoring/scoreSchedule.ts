@@ -27,34 +27,48 @@ export const validateSchedule = (schedule: Schedule, activities: Activity[]): st
     }        
     return null;
 }
-
-export const scoreSchedule = (schedule: Schedule, studentPreferences: StudentPreferences[]): number => {
+export const scoreSchedule = (
+    schedule: Schedule,
+    studentPreferences: StudentPreferences[]
+  ): number => {
     let peerScore = 0;
     let activityScore = 0;
-
-    // Build rosters as sets
+  
+    // Precompute studentPreferences map
+    const preferencesMap = new Map(
+      studentPreferences.map((prefs) => [prefs.identifier, prefs])
+    );
+  
+    // Build activity rosters
     const activityRosters = new Map<string, Set<string>>();
     for (const { activity, student } of schedule) {
-        if (!activityRosters.has(activity)) {
-            activityRosters.set(activity, new Set());
-        }
-        activityRosters.get(activity)!.add(student);
+      if (!activityRosters.has(activity)) {
+        activityRosters.set(activity, new Set());
+      }
+      activityRosters.get(activity)!.add(student);
     }
-
-    for (let assignment of schedule) {        
-        let prefs = studentPreferences.find(p => p.identifier === assignment.student);
-        if (!prefs) {
-            continue;
+  
+    // Calculate scores
+    for (let { student, activity } of schedule) {
+      const prefs = preferencesMap.get(student);
+      if (!prefs) continue;
+  
+      // Activity score
+      const activityPref = prefs.activity.find((a) => a.activity === activity);
+      if (activityPref) {
+        activityScore += activityPref.weight;
+      }
+  
+      // Peer score
+      const roster = activityRosters.get(activity);
+      if (!roster) continue;
+  
+      for (let peer of prefs.peer) {
+        if (roster.has(peer.peer)) {
+          peerScore += peer.weight;
         }
-        let activityPref = prefs.activity.find(a => a.activity === assignment.activity);
-        if (activityPref) {
-            activityScore += activityPref.weight;
-        }
-        for (let peer of prefs.peer) {
-            if (activityRosters.get(assignment.activity)?.has(peer.peer)) {
-                peerScore += peer.weight;
-            }
-        }
+      }
     }
-    return activityScore + peerScore;    
-}
+  
+    return activityScore + peerScore;
+  };

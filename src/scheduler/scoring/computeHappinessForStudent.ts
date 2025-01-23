@@ -26,12 +26,13 @@ export function computeHappinessForStudent(
   const activityWeight = activityPref ? activityPref.weight : 0;
   
   // 2) Peer synergy: sum the weights for peers who are in occupantList
-  let peerSum = 0;
+  let peerSum = 0;  
   for (const p of student.peer) {
     // If p.peer is in occupantList, add p.weight
-    if (occupantList.find((o)=>o.identifier==p.peer)) {
+    let peer = occupantList.find((o)=>o.identifier==p.peer);
+    if (peer) {
       peerSum += p.weight;
-      let peerPrefForMe = p.peer.find((p)=>p.peer==student.identifier);
+      let peerPrefForMe = peer.peer.find((p)=>p.peer==student.identifier);
       if (peerPrefForMe) {
         peerSum += peerPrefForMe.weight;
       }

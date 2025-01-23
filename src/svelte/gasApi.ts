@@ -10,12 +10,30 @@ export const GoogleAppsScript = {
       });
     },
 
-     test(): Promise<string> {
+     readBuildData(): Promise<import("../types").ScheduleInfo[]> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: string) => resolve(result))
+          .withSuccessHandler((result: import("../types").ScheduleInfo[]) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .test();
+          .readBuildData();
+      });
+    },
+
+     writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .writeBuildData(schedules);
+      });
+    },
+
+     clearBuildData(): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .clearBuildData();
       });
     },
 

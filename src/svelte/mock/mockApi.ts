@@ -50,3 +50,15 @@ export function readData(): { activities: Activity[]; studentPreferences: Studen
 
   return { activities, studentPreferences };
 }
+
+export function readBuildData(): import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[] {
+  return null; // TODO: Replace with mock return value of type import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]
+}
+
+export function writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): void {
+  
+}
+
+export function clearBuildData(): void {
+  
+}

@@ -1,5 +1,4 @@
 import { activityColumnName } from "./constants";
-
 export const IDCOL = 'identifier';
 export const ASSIGNED_ACTIVITY_COL = 'activity';
 export const OVERRIDE_COL = 'override';
@@ -59,3 +58,28 @@ export function getActivitiesSheet() {
     }
     return sheet;
 }
+
+// Build Sheet Code
+// For keeping track of generated schedules and scores
+
+export const ID_HEADER = 'id';
+export const ALG_HEADER = 'alg';
+export const SCORE_HEADER = 'score';
+export const GEN_HEADER = 'generation';
+const BUILD_HEADERS = [SCORE_HEADER,GEN_HEADER,ALG_HEADER,ID_HEADER];
+
+export function getBuildSheet () {
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Build');
+    if (!sheet) {
+        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('Build');
+        setupBuildSheet(sheet);
+    }
+    return sheet;
+}
+
+export function setupBuildSheet (sheet : GoogleAppsScript.Spreadsheet.Sheet) {        
+    sheet.setFrozenRows(1);
+    sheet.appendRow(BUILD_HEADERS);
+}
+
+

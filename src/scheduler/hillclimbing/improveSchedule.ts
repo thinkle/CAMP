@@ -1,6 +1,7 @@
 
 import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../../types";
 import { computeHappinessForStudent } from "../scoring/computeHappinessForStudent";
+import { scoreSchedule } from "../scoring/scoreSchedule";
 
 
 const getScheduleData = (schedule : Schedule, studentPreferences : StudentPreferences[]) : {
@@ -25,134 +26,102 @@ const getScheduleData = (schedule : Schedule, studentPreferences : StudentPrefer
 }
 
 const improveLeastHappyWithSwaps = (
-    schedule: Schedule,
-    studentPreferences: StudentPreferences[],
-    activities: Activity[]
-  ): { schedule: Schedule; improved: boolean } => {
-    let data = getScheduleData(schedule, studentPreferences);
-    let studentHappiness: {
-      student: StudentPreferences;
-      happiness: number;
-      mutualHappiness: number;
-    }[] = [];
-  
-    // Compute initial happiness for all students
-    for (let activity in data.rosters) {
-      let roster = data.rosters.get(activity)!;
-      for (let student of roster) {
-        studentHappiness.push({
-          student: student,
-          ...computeHappinessForStudent(student, activity, roster),
-        });
-      }
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[],
+  activities: Activity[]
+): { schedule: Schedule; improved: boolean } => {
+  const currentScore = scoreSchedule(schedule, studentPreferences);
+  let data = getScheduleData(schedule, studentPreferences);
+
+  // Sort students by happiness (ascending)
+  let studentHappiness: {
+    student: StudentPreferences;
+    happiness: number;
+    mutualHappiness: number;
+  }[] = [];
+  data.rosters.forEach((roster, activity) => {
+    for (let student of roster) {
+      const happinessData = computeHappinessForStudent(student, activity, roster);
+      studentHappiness.push({
+        student: student,
+        ...happinessData,
+      });
     }
-  
-    // Sort students by happiness (ascending)
-    studentHappiness.sort((a, b) => a.happiness - b.happiness);
-  
-    // Iterate through the least-happy students
-    for (let { student: unhappyStudent, happiness: unhappyOldHappiness } of studentHappiness) {
-      const currentAssignment = schedule.find(
-        (s) => s.student === unhappyStudent.identifier
-      );
-      const currentActivity = currentAssignment?.activity;
-  
-      let bestSwap = null;
-      let bestDelta = 0;
-  
-      // Look at the student's preferred activities
-      for (const pref of unhappyStudent.activity.sort(
-        (a, b) => b.weight - a.weight
-      )) {
-        if (pref.activity === currentActivity) continue; // Skip the current activity
-  
-        const roster = data.rosters.get(pref.activity) || [];
-        const capacity = activities.find(
-          (a) => a.activity === pref.activity
-        )?.capacity;
-  
-        // If the activity is not full, consider moving the student directly
-        if (roster.length < capacity!) {
-          const newHappiness = computeHappinessForStudent(
-            unhappyStudent,
-            pref.activity,
-            roster
-          ).happiness;
-  
-          const delta = newHappiness - unhappyOldHappiness;
-          if (delta > bestDelta) {
-            bestDelta = delta;
-            bestSwap = { studentToMove: unhappyStudent, from: currentActivity, to: pref.activity };
-          }
-        } else {
-          // If the activity is full, consider swapping with someone in the roster
-          for (const otherStudentId of roster.map((s) => s.identifier)) {
-            const otherStudent = studentPreferences.find(
-              (p) => p.identifier === otherStudentId
-            );
-            if (!otherStudent) continue;
-  
-            // Compute new happiness values
-            const unhappyNewHappiness = computeHappinessForStudent(
-              unhappyStudent,
-              pref.activity,
-              roster
-            ).happiness;
-  
-            const otherNewActivity = currentActivity || "Unassigned"; // UnhappyStudent's old spot
-            const otherRoster = data.rosters.get(otherNewActivity) || [];
-            const otherNewHappiness = computeHappinessForStudent(
-              otherStudent,
-              otherNewActivity,
-              otherRoster
-            ).happiness;
-  
-            const otherOldHappiness = computeHappinessForStudent(
-              otherStudent,
-              pref.activity,
-              roster
-            ).happiness;
-  
-            // Calculate net happiness change
-            const delta =
-              (unhappyNewHappiness - unhappyOldHappiness) +
-              (otherNewHappiness - otherOldHappiness);
-  
-            if (delta > bestDelta) {
-              bestDelta = delta;
-              bestSwap = {
-                studentToMove: unhappyStudent,
-                from: currentActivity,
-                to: pref.activity,
-                swapWith: otherStudent,
-              };
-            }
-          }
+  });
+  studentHappiness.sort((a, b) => a.happiness - b.happiness);
+
+  // Iterate through the least-happy students
+  for (let { student: unhappyStudent } of studentHappiness) {
+    const currentAssignment = schedule.find(
+      (s) => s.student === unhappyStudent.identifier
+    );
+    const currentActivity = currentAssignment?.activity;
+
+    // Try direct moves first
+    for (const pref of unhappyStudent.activity.sort(
+      (a, b) => b.weight - a.weight
+    )) {
+      if (pref.activity === currentActivity) continue; // Skip current activity
+
+      const roster = data.rosters.get(pref.activity) || [];
+      const capacity = activities.find(
+        (a) => a.activity === pref.activity
+      )?.capacity;
+
+      if (roster.length < capacity!) {
+        // Apply direct move
+        const newSchedule = schedule.map((assignment) =>
+          assignment.student === unhappyStudent.identifier
+            ? { ...assignment, activity: pref.activity }
+            : assignment
+        );
+
+        const newScore = scoreSchedule(newSchedule, studentPreferences);
+        if (newScore > currentScore) {
+          return { schedule: newSchedule, improved: true };
         }
       }
-  
-      // If we found a good swap, apply it and return the updated schedule
-      if (bestSwap) {
-        const { studentToMove, from, to, swapWith } = bestSwap;
-  
-        // Update the schedule
-        schedule = schedule.map((assignment) => {
-          if (assignment.student === studentToMove.identifier) {
-            return { ...assignment, activity: to }; // Move unhappy student
-          } else if (swapWith && assignment.student === swapWith.identifier) {
-            return { ...assignment, activity: from || "Unassigned" }; // Swap peer
+    }
+
+    // Try swaps if moves aren't possible
+    for (const pref of unhappyStudent.activity.sort(
+      (a, b) => b.weight - a.weight
+    )) {
+      const roster = data.rosters.get(pref.activity) || [];
+      if (roster.length < (activities.find((a) => a.activity === pref.activity)?.capacity || 0)) {
+        continue; // Skip if not full
+      }
+
+      for (const otherStudentId of roster.map((s) => s.identifier)) {
+        const otherStudent = studentPreferences.find(
+          (p) => p.identifier === otherStudentId
+        );
+        if (!otherStudent) continue;
+
+        // Simulate the swap
+        const newSchedule = schedule.map((assignment) => {
+          if (assignment.student === unhappyStudent.identifier) {
+            return { ...assignment, activity: pref.activity };
+          }
+          if (assignment.student === otherStudent.identifier) {
+            return { ...assignment, activity: currentActivity || "Unassigned" };
           }
           return assignment;
         });
-  
-        return { schedule, improved: true }; // Return immediately after improvement
+
+        const newScore = scoreSchedule(newSchedule, studentPreferences);
+        if (newScore > currentScore) {
+          return { schedule: newSchedule, improved: true };
+        }
       }
     }
-  
-    return { schedule, improved: false }; // No improvements possible
-  };
+  }
 
-export const improveSchedule = (schedule, studentPreferences: StudentPreferences[], activities: Activity[], maxIterations = 50) => {
+  // No improvements found
+  return { schedule, improved: false };
+};
+
+export const improveSchedule = (schedule, studentPreferences: StudentPreferences[], activities: Activity[], maxIterations = 10) : Schedule => {
     let {schedule : newSchedule, improved} = improveLeastHappyWithSwaps(schedule, studentPreferences, activities);
     let iterations = 1;
     schedule = newSchedule;
