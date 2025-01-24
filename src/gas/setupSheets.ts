@@ -12,22 +12,27 @@ export function setupPreferencesSheet (activity_preferences=4, peer_preferences=
     let sheet = getPreferencesSheet();
     let columns = STARTER_COLS;
 
+    // Clear all existing data validations and conditional formatting
+    sheet.getDataRange().clearDataValidations();
+    sheet.clearConditionalFormatRules();
+
     let weightValidation = SpreadsheetApp.newDataValidation().requireNumberBetween(-100,100).build();
-    let lastRow = Math.max(sheet.getLastRow(),2);
+    let lastRow = Math.max(sheet.getMaxRows(),2);
 
     for (let i = 0; i < activity_preferences; i++) {
         columns.push(`${activityColumnName} ${i+1}`);
         sheet.setColumnWidth(columns.length,ACTIVITY_WIDTH);
         columns.push(WEIGHT_HEADER);
-        sheet.setColumnWidth(columns.length,WEIGHT_WIDTH);        
-        sheet.getRange(2,columns.length,1,lastRow - 1).setDataValidation(weightValidation);
+        sheet.setColumnWidth(columns.length,WEIGHT_WIDTH);    
+        
+        sheet.getRange(2,columns.length,lastRow - 1,1).setDataValidation(weightValidation);
     }
     for (let i = 0; i < peer_preferences; i++) {
         columns.push(`Peer ${i+1}`);
         sheet.setColumnWidth(columns.length,PEER_WIDTH);
         columns.push(WEIGHT_HEADER);
         sheet.setColumnWidth(columns.length,WEIGHT_WIDTH);
-        sheet.getRange(2,columns.length,1,lastRow - 1).setDataValidation(weightValidation);
+        sheet.getRange(2,columns.length,lastRow - 1,1).setDataValidation(weightValidation);
     }
     sheet.setFrozenRows(1);
     sheet.setFrozenColumns(2);    
