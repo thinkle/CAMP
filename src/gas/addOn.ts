@@ -8,9 +8,8 @@ export interface UniversalMenuInterface {
 }
 
 const universalMenu: UniversalMenuInterface = {
-  addToMenu(menu: GoogleAppsScript.Base.Menu) {
-    menu.addItem("Show Dialog", "showDialog");
-    menu.addItem("Show Sidebar", "showSidebar");
+  addToMenu(menu: GoogleAppsScript.Base.Menu) {    
+    menu.addItem("Open Scheduler", "showSidebar");
   },
 };
 
@@ -19,7 +18,7 @@ export function getAddOnEnvironment():
   | "Docs"
   | "Sheets"
   | "Unknown" {
-  return "Slides";
+  return "Sheets";
 }
 
 export function onOpen(e: any): void {
