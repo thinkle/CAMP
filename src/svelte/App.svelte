@@ -22,9 +22,12 @@
   };
 
   
+
   const readData = async () => {
     data = await GoogleAppsScript.readData();
-    console.log('Read data',data);    
+    let ogLength = data.studentPreferences.length;
+    data.studentPreferences = data.studentPreferences.filter(sp => sp.activity.length > 0);
+    console.log('Filtered out',ogLength - data.studentPreferences.length,'students with no activities');
   }
 
 </script>
@@ -42,11 +45,7 @@
   </Block>
   <Block>
     <WorkerManager {data}></WorkerManager>
-  </Block>
-  <Block>
-    <ScheduleBuilder {data}></ScheduleBuilder>    
-  </Block>
-
+  </Block>  
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
   <DataPreview {data}></DataPreview>
   <div>
