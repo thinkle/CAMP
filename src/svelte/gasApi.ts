@@ -19,6 +19,15 @@ export const GoogleAppsScript = {
       });
     },
 
+     writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): Promise<void> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: void) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .writeSchedule(schedule);
+      });
+    },
+
      readBuildData(): Promise<import("../types").ScheduleInfo[]> {
       return new Promise((resolve, reject) => {
         google.script.run

@@ -28,18 +28,15 @@ const assignByFives = (prefs : StudentPreferences[], activities : Activity[]) : 
 const assignByTens = (prefs : StudentPreferences[], activities : Activity[]) : Schedule => {
     return assignByCohorts(prefs, activities, 10);
 }
+const assignByTwenties = (prefs : StudentPreferences[], activities : Activity[]) : Schedule => {
+    return assignByCohorts(prefs, activities, 20);
+}
 
-
-export const generateSchedulesFromHeuristics = (
-    nrounds : number, 
-    prefs : StudentPreferences[], 
-    activities : Activity[],
-    schedules : ScheduleInfo[] = []
-) => {
+export function* generate (prefs : StudentPreferences[], activities: Activity[], nrounds: number) {
     let existingIds = new Set();
     for (let s of schedules) {
         existingIds.add(s.id);
-    }
+    }    
     for (let i=0; i<nrounds; i++) {
         for (let alg of [assignByActivity, assignByPeer, assignByPriority,
             assignByCohortMinSize, assignByCohortMedianSize, assignByThrees, assignByFives,
@@ -56,6 +53,7 @@ export const generateSchedulesFromHeuristics = (
                 if (!existingIds.has(info.id)) {
                     existingIds.add(info.id);
                     schedules.push(info);
+                    yield info;
                 } else {
                     console.log("Ignoring duplicate schedule");
                 }
@@ -65,5 +63,25 @@ export const generateSchedulesFromHeuristics = (
             }            
         }
     }
+}
+
+export const generateSchedulesFromHeuristics = (
+    nrounds : number, 
+    prefs : StudentPreferences[], 
+    activities : Activity[],
+    schedules : ScheduleInfo[] = []
+) => {
+    let existingIds = new Set();
+    for (let s of schedules) {
+        existingIds.add(s.id);
+    }
+    for (let scheduleInfo of generate(prefs, activities, 10)) {
+        if (!existingIds.has(scheduleInfo.id)) {
+            existingIds.add(scheduleInfo.id);
+            schedules.push(scheduleInfo);
+        } else {
+            console.log("Ignoring duplicate schedule");
+        }
+    }    
     return schedules;
 }

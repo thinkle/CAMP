@@ -10,6 +10,7 @@ export default defineConfig({
       name: "worker",
       fileName: () => `worker.js`, // Initially outputs worker.js
     },
+    minify: false, // Don't minify worker.js
     outDir: "./dist", // Ensure output goes to dist/
     emptyOutDir: false, // Avoid wiping other files in dist/
   },

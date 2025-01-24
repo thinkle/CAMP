@@ -15,7 +15,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "create-clasp-project": "node createClaspProject.js",
     "push-to-clasp": "npm run build && clasp push",
-    "watch:all": "chokidar 'src/gas/api.ts' -c 'npm run build:all'",
+    "watch:all": "concurrently \"chokidar 'src/gas/api.ts' -c 'npm run build:all'\" \"chokidar 'worker/main.js' -c 'npm run build-worker'\"",    
     "build:all": "npm-run-all build-types build-mocks build-gas-api",
     "build-worker": "vite build --config vite.config.worker.ts",
     "build-gas-api": "create-client-api src/gas/api.ts src/svelte/gasApi.ts",
@@ -45,6 +45,7 @@
     "contain-css-svelte": "^0.0.14",
     "google-apps-script-run-ts-mocks": "^0.0.3",
     "google-apps-script-svelte-components": "^0.0.3",
+    "js-combinatorics": "^2.1.2",
     "svelte": "4.2.2",
     "vitest": "^3.0.3"
   }

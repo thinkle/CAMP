@@ -68,3 +68,7 @@ export function clearBuildData(): void {
 export function getWorkerScript(): string {
   return workerText;
 }
+
+export function writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): void {
+  
+}

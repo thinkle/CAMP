@@ -11,6 +11,6 @@ export const createScheduleInfo = (schedule : Schedule, studentPreferences : Stu
         invalid : validateSchedule(schedule, activities),
         alg,
         id : scheduleToId(schedule, activities),
-        generation: 0,
+        generation,
     };
 }

@@ -6,6 +6,7 @@ import type { Assignment, StudentPreferences, Activity, ScheduleInfo } from "../
 import { improveSchedule } from "./improveSchedule";
 import { createScheduleInfo } from "./scheduleInfo";
 
+
 export const evolveSchedules = (population : ScheduleInfo[], studentPreferences : StudentPreferences[], activities : Activity[],
     noffspring = 10
 ) : ScheduleInfo[] => {
@@ -62,3 +63,48 @@ export const improveSchedules = (population : ScheduleInfo[], studentPreferences
     }
     return population;    
 }
+
+export function* createCrosses (population : ScheduleInfo[], studentPreferences : StudentPreferences[], activities : Activity[], rounds : number) {
+    let combinations =  getCombinations(population, 2);
+    for (let pair of combinations) {
+        try {
+            let merged = mergeSchedules(pair.map((s)=>s.schedule), studentPreferences, activities);
+            merged = improveSchedule(merged, studentPreferences, activities, rounds);
+            
+            const mergedAlgName = getMergedName(pair[0], pair[1]);
+            let mergedInfo = createScheduleInfo(merged, studentPreferences, activities, mergedAlgName, pair[0].generation + 1);
+            yield mergedInfo;
+        } catch (err) {
+            console.log('Error merging', err);            
+        }
+    }    
+}
+function getMergedName(schedule1: ScheduleInfo, schedule2: ScheduleInfo): string {
+    // Extract the root algorithm names from both schedules
+    const algorithms = [schedule1.alg, schedule2.alg]
+      .flatMap((alg) => alg.split("+")[0]) // Extract the root algorithm name (first part before "+" if present)
+      .filter((alg, index, self) => self.indexOf(alg) === index) // Deduplicate names
+      .join("+");
+  
+    // Determine the next generation number
+    const generation = Math.max(schedule1.generation, schedule2.generation) + 1;
+  
+    // Return the concise name
+    return `${algorithms}-GA-G${generation}`;
+  }
+
+
+  function* getCombinations<T>(array: T[], k: number): Generator<T[]> {
+    function* helper(start: number, current: T[]): Generator<T[]> {
+      if (current.length === k) {
+        yield current;
+        return;
+      }
+  
+      for (let i = start; i < array.length; i++) {
+        yield* helper(i + 1, [...current, array[i]]);
+      }
+    }
+  
+    yield* helper(0, []);
+  }

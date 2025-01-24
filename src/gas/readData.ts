@@ -6,7 +6,7 @@ import type {
 } from "../types";
 
   // Import sheet getters from your setupSheets module:
-  import { getActivitiesSheet, getPreferencesSheet } from "./setupSheets";
+  import { getActivitiesSheet, getPreferencesSheet, OVERRIDE_COL } from "./setupSheets";
   
   /**
    * Reads data from the "Activities" sheet and the "Preferences" sheet,
@@ -55,11 +55,15 @@ import type {
     for (let row = 1; row < prefValues.length; row++) {
       const thisRow = prefValues[row];
       const identifier = thisRow[0];
+      
       if (!identifier) {
         // Reached an empty row—assume end of data
         break;
       }
-  
+
+      const override = thisRow[1]; // this is the "override" column which will just force the student into this activity
+        
+
       // Initialize preference arrays
       const activityPrefs: ActivityPreference[] = [];
       const peerPrefs: PeerPreference[] = [];
@@ -103,11 +107,19 @@ import type {
         colIndex += 2; // Move to the next preference pair
       }
   
-      studentPreferences.push({
-        identifier: String(identifier),
-        activity: activityPrefs,
-        peer: peerPrefs,
-      });
+      if (override) {
+        studentPreferences.push({
+          identifier: String(identifier),
+          activity: [{activity: override, weight: 100}],
+          peer: peerPrefs,
+        });
+      } else {
+        studentPreferences.push({
+          identifier: String(identifier),
+          activity: activityPrefs,
+          peer: peerPrefs,
+        });
+      }
     }
   
     return { activities, studentPreferences };
