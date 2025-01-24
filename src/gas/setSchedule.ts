@@ -1,12 +1,18 @@
-import { getActivitiesSheet, getPreferencesSheet } from "./setupSheets";
+import { ASSIGNED_ACTIVITY_COL, getActivitiesSheet, getPreferencesSheet, IDCOL, STARTER_COLS } from "./setupSheets";
 import type { Schedule } from "../types";
+
+
 
 export function writeSchedule (schedule : Schedule) {
     let sheet = getPreferencesSheet();
     let idcol = 0;
     let assignmentCol = 1;
     // Read all data...
-    let data = sheet.getDataRange().getValues();
+    // columns we need are just...
+    // idcol and assignmentCol
+    let lastNeededColumn = Math.max(STARTER_COLS.indexOf(IDCOL), STARTER_COLS.indexOf(ASSIGNED_ACTIVITY_COL)) + 1; // 1-based
+    let lastDataRow = sheet.getLastRow();
+    let data = sheet.getRange(1, 1, lastDataRow, lastNeededColumn).getValues();
     // Update data...
     for (let assignment of schedule) {
         let row = data.find((r)=>r[idcol] === assignment.student);
