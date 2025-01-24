@@ -6,7 +6,7 @@ import type {
 } from "../types";
 
   // Import sheet getters from your setupSheets module:
-  import { getActivitiesSheet, getPreferencesSheet, OVERRIDE_COL } from "./setupSheets";
+  import { getActivitiesSheet, getPreferencesSheet, ID_HEADER, IDCOL, OVERRIDE_COL, STARTER_COLS } from "./setupSheets";
   
   /**
    * Reads data from the "Activities" sheet and the "Preferences" sheet,
@@ -54,23 +54,22 @@ import type {
     // Start reading from row 2 (index = 1)
     for (let row = 1; row < prefValues.length; row++) {
       const thisRow = prefValues[row];
-      const identifier = thisRow[0];
+      const identifier = thisRow[STARTER_COLS.indexOf(IDCOL)];
       
       if (!identifier) {
         // Reached an empty row—assume end of data
         break;
       }
 
-      const override = thisRow[1]; // this is the "override" column which will just force the student into this activity
+      const override = thisRow[STARTER_COLS.indexOf(OVERRIDE_COL)]; // this is the "override" column which will just force the student into this activity
         
 
       // Initialize preference arrays
       const activityPrefs: ActivityPreference[] = [];
       const peerPrefs: PeerPreference[] = [];
   
-      // We skip columns 1 and 2 (assigned activity, override) since we only read preferences
-      // so our reading starts at index = 3
-      let colIndex = 3;
+      // We skip header columns with ID, assignment, etc      
+      let colIndex = STARTER_COLS.length;
   
       while (colIndex < thisRow.length - 1) {
         // Column headers should align with either "Activity Preference #"
