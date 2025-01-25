@@ -44,10 +44,10 @@ function improveForever (schedule: ScheduleInfo, prefs: StudentPreferences[], ac
     console.log('worker: done improving');
 }
 
-function generateStarters (prefs: StudentPreferences[], activities: Activity[], rounds : number) {
+function generateStarters (prefs: StudentPreferences[], activities: Activity[], rounds : number, algs : string[]) {
     running = true;
     console.log('worker: generateStarters', prefs, activities, rounds);    
-    for (let scheduleInfo of generate(prefs, activities, rounds)) {        
+    for (let scheduleInfo of generate(prefs, activities, rounds, algs)) {        
         console.log('worker: generated', scheduleInfo);
         self.postMessage({ type: 'generated', schedule: scheduleInfo });
         if (!running) {
@@ -100,7 +100,7 @@ self.onmessage = (e) => {
 
             case "generate":
                 // Generate starter schedules
-                generateStarters(payload.prefs, payload.activities, payload.rounds);
+                generateStarters(payload.prefs, payload.activities, payload.rounds, payload.algs);
                 break;
 
             case "evolve":
