@@ -1,10 +1,11 @@
 <script lang="ts">
+	import type { Similarity } from './../scheduler/hillclimbing/compareSchedules.ts';
   import { Button } from 'contain-css-svelte';
 
     import type { ScheduleInfo } from './../types.ts';
   import { GoogleAppsScript } from './gasApi.js';
     export let schedule : ScheduleInfo    
-
+    export let comparison : Similarity | undefined = undefined;
     let timestamp = new Date().getTime();
     let lastId = null;
     function updateTimestamp(id: string) {
@@ -41,4 +42,14 @@
             GoogleAppsScript.writeSchedule(schedule.schedule)
         }>Write Schedule</Button></td>
     </tr>
+    {#if comparison}
+        <tr>
+            <th>Assignment Similarity</th>
+            <td>{comparison.assignmentSimilarity}</td>
+        </tr>
+        <tr>
+            <th>Cohort Similarity</th>
+            <td>{comparison.cohortSimilarity}</td>
+        </tr>
+    {/if}
 </table>
