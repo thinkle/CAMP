@@ -6,7 +6,7 @@ import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../..
 import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { scheduleToId } from "./scheduleSaver";
 import { createScheduleInfo } from "./scheduleInfo";
-
+import { assignByMostConstrained} from '../heuristics/mostConstrainedHeuristic';
 
 let schedules : ScheduleInfo[] = [];
 let activities : Activity[] = [];
@@ -32,16 +32,27 @@ const assignByTwenties = (prefs : StudentPreferences[], activities : Activity[])
     return assignByCohorts(prefs, activities, 20);
 }
 
-export function* generate (prefs : StudentPreferences[], activities: Activity[], nrounds: number) {
+const assignFunctions = [
+    assignByMostConstrained,
+    assignByActivity, 
+    assignByPeer, 
+    assignByPriority, 
+    assignByCohortMinSize, assignByCohortMedianSize, assignByThrees, assignByFives, assignByTens, assignByTwenties
+];
+
+export const algNames = assignFunctions.map(f => f.name);
+
+export function* generate (prefs : StudentPreferences[], activities: Activity[], nrounds: number, algs : string[]) {
     let existingIds = new Set();
+    let myAssignFunctions = assignFunctions;    
+    if (algs && algs.length) {
+        myAssignFunctions = assignFunctions.filter(f => algs.includes(f.name));
+    } 
     for (let s of schedules) {
         existingIds.add(s.id);
     }    
     for (let i=0; i<nrounds; i++) {
-        for (let alg of [assignByActivity, assignByPeer, assignByPriority,
-            assignByCohortMinSize, assignByCohortMedianSize, assignByThrees, assignByFives,
-            assignByTens
-        ]) {
+        for (let alg of myAssignFunctions) {
             try {
                 let shuffledPrefs = [...prefs];
                 shuffledPrefs.sort(() => Math.random() - 0.5);
