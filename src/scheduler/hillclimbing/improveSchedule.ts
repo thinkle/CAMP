@@ -121,12 +121,47 @@ const improveLeastHappyWithSwaps = (
   return { schedule, improved: false };
 };
 
+
+const mutateSchedule = (schedule: Schedule, studentPreferences: StudentPreferences[], activities: Activity[]) : Schedule => {
+   let nmutations = Math.ceil(Math.max(1, (schedule.length * (.10  + Math.random() * 0.1))));
+   let output = schedule.slice();
+   console.log('Adding ', nmutations, 'mutations');
+   for (let i=0; i<nmutations; i++) {      
+      let toMutate = Math.floor(Math.random() * schedule.length);
+      let currentAssignment = schedule[toMutate];
+      let student = studentPreferences.find((s)=>s.identifier === currentAssignment.student)!;
+      let currentActivity = currentAssignment.activity;
+      let options = student.activity.filter((a)=>a.activity !== currentActivity);
+      if (options.length === 0) {
+          continue;
+      }
+      let newActivity = options[Math.floor(Math.random() * options.length)].activity;
+      let roster = schedule.filter((a)=>a.activity === newActivity);
+      let capacity = activities.find((a)=>a.activity === newActivity)!.capacity;
+      if (roster.length < capacity) {
+          // Just add us then
+          output[toMutate] = {...currentAssignment, activity : newActivity};
+      } else {
+        // Otherwise swap us
+        let swapWith = roster[Math.floor(Math.random() * roster.length)];
+        output[toMutate] = {...currentAssignment, activity : newActivity};
+        output[output.indexOf(swapWith)] = {...swapWith, activity : currentActivity};
+      }      
+   }   
+   return schedule;
+}
+
 export const improveSchedule = (schedule, studentPreferences: StudentPreferences[], activities: Activity[], maxIterations = 10) : Schedule => {
     let {schedule : newSchedule, improved} = improveLeastHappyWithSwaps(schedule, studentPreferences, activities);
     let iterations = 1;
     schedule = newSchedule;
-    while (improved && iterations < maxIterations) {        
+    while (improved && iterations < maxIterations) {                
         ({schedule : newSchedule, improved} = improveLeastHappyWithSwaps(schedule, studentPreferences, activities));
+        if (!improved) {
+          console.log("Stuck, let's mutate");
+          newSchedule = mutateSchedule(schedule, studentPreferences, activities);
+          ({schedule: newSchedule, improved} = improveLeastHappyWithSwaps(newSchedule, studentPreferences, activities));
+        }
         schedule = newSchedule;
         iterations++;
     }
