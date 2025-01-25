@@ -5,6 +5,6 @@
     "types" : ["svelte","node","google-apps-script-run-ts-mocks","google-apps-script-svelte-components"]
     // Add any other specific compiler options for svelte here
   },
-  "include": ["*.svelte", "*.ts", "*.js","types/*.d.ts","../types.ts","../scheduler/**.ts","../worker/**.ts"],
+  "include": ["*.svelte", "*.ts", "*.js","types/*.d.ts","../types.ts","../scheduler/**.ts","../worker/**.ts", "lib/workerPool.ts", "lib/workerPool.ts"],
   
 }
