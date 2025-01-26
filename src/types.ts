@@ -30,3 +30,13 @@ export type ActivityPreference = {
     generation : number,
     id : string,
  }
+
+ export type WorkerMessage = {
+  complete? : boolean,
+  type: 'improved' | 'doneImproving' | 'error' | 'stopped' | 'generated' | 'evolved' | 'started',
+  message: string,
+  schedule? : ScheduleInfo,
+  population? : ScheduleInfo[],
+  count? : number,
+  total? : number,
+}
