@@ -2,7 +2,7 @@
 	import type { StudentPreferences, Activity } from './../types.ts';
   import SetupSheets from './SetupSheets.svelte';
 
-  import { Block, Icon } from "google-apps-script-svelte-components";  
+  
   import { GoogleAppsScript } from "./gasApi";
   import { onMount } from "svelte";
   import { Button } from "contain-css-svelte";
