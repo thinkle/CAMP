@@ -3,19 +3,30 @@ import { createCrosses } from "../scheduler/hillclimbing/evolveSchedules";
 import { generate } from "../scheduler/hillclimbing/generator";
 import { mergeSchedules } from "../scheduler/hillclimbing/mergeSchedules";
 import { createScheduleInfo } from "../scheduler/hillclimbing/scheduleInfo";
-import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../types";
+import type { Schedule, Activity, StudentPreferences, ScheduleInfo, WorkerMessage } from "../types";
 
 let running;
+
+
+const postMessage = (message : WorkerMessage) => {    
+    self.postMessage(message);
+}
 
 const stop = () => {
     running = false;
 }
 
-function improveForever (schedule: ScheduleInfo, prefs: StudentPreferences[], activities : Activity[], stopAfter=10) {
-    console.log('worker: improveForever', schedule, prefs, activities, stopAfter);
+
+async function tick() {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+async function improveForever (schedule: ScheduleInfo, prefs: StudentPreferences[], activities : Activity[], stopAfter=10) {
+    postMessage({ type: 'started', message: `Started improving schedule (${schedule.score})` });
     running = true;
     let rounds = 0;
-    while (running && !stopAfter || rounds < stopAfter) {
+    let startingScore = schedule.score;
+    while (running && (!stopAfter || rounds < stopAfter)) {
         rounds++;
         try {
             let improved = improveSchedule(schedule.schedule, prefs, activities);
@@ -28,59 +39,66 @@ function improveForever (schedule: ScheduleInfo, prefs: StudentPreferences[], ac
             let improvedInfo = createScheduleInfo(improved, prefs, activities, schedule.alg, schedule.generation+1);            
             if (improvedInfo.score > schedule.score) {
                 console.log('worker: Improved schedule', improvedInfo.score, improvedInfo);
-                self.postMessage({ type: 'improved', schedule: improvedInfo });
+                postMessage({ type: 'improved', schedule: improvedInfo, message: `Improved by ${improvedInfo.score - startingScore}` });
                 schedule = improvedInfo;
             } else {
-                self.postMessage( {type : 'doneImproving' });
-                self.postMessage({ type: 'stopped'});
+                postMessage( {type : 'doneImproving', complete: true, message : `No further improvements (+${improvedInfo.score - startingScore} total)`});
                 return;
             }
+            await tick();
         } catch (err) {
-            self.postMessage({ type: 'error', function :  'improve', message: err.message });
+            postMessage({ type: 'error', message: err.message, complete: true });
             running = false;
         }
     }
-    self.postMessage({ type: 'stopped'});
+    postMessage({ type: running ? 'doneImproving' : 'stopped', complete: true, message: 'Stopped after ' + rounds + ' rounds' });
     console.log('worker: done improving');
 }
 
-function generateStarters (prefs: StudentPreferences[], activities: Activity[], rounds : number, algs : string[]) {
+async function generateStarters (prefs: StudentPreferences[], activities: Activity[], rounds : number, algs : string[]) {
+    postMessage({ type: 'started', message: 'Started generating schedules' });
     running = true;
+    let i = 0;
     console.log('worker: generateStarters', prefs, activities, rounds);    
-    for (let scheduleInfo of generate(prefs, activities, rounds, algs)) {        
-        console.log('worker: generated', scheduleInfo);
-        self.postMessage({ type: 'generated', schedule: scheduleInfo });
+    for (let scheduleInfo of generate(prefs, activities, rounds, algs)) {                
+        i++;
+        postMessage({ type: 'generated', schedule: scheduleInfo, message: `Generated schedule ${i}` });
+        await tick();
         if (!running) {
-            self.postMessage({ type: 'stopped'});
-            break
+            postMessage({ type: 'stopped', message: 'Interrupted after generating ${i} schedules', complete: true });
+            return
         }
+        
     }
     console.log('worker done generating');
-    self.postMessage({ type: 'stopped'});
+    postMessage({ type: 'stopped', message: `Generated ${i} schedules.`, complete: true });
 }
 
-function evolveGenerations (population : ScheduleInfo[], prefs: StudentPreferences[], activities: Activity[], rounds: number | null) {
+async function evolveGenerations (population : ScheduleInfo[], prefs: StudentPreferences[], activities: Activity[], rounds: number | null) {
     running = true;
+    postMessage({ type: 'started', message: 'Started evolving schedules', count: 0, total: rounds });
     console.log('worker: evolveGenerations', population, prefs, activities, rounds);
     let n = 0;
-    while (running && !rounds || n < rounds) {
+    while (running && (!rounds || n < rounds)) {
         console.log('worker: Evolving generation', n);
         let nextGen = [];
         for (let offspring of createCrosses(population, prefs, activities, 10)) {
             nextGen.push(offspring);
             console.log('worker: Evolved schedule', offspring.score, offspring);
-            self.postMessage({ type: 'evolved', schedule: offspring });
+            postMessage({ type: 'evolved', message: 'Evolved schedule', schedule: offspring, count : n, total: rounds });
+            await tick();
             if (!running) {
-                self.postMessage({ type: 'stopped'});
-                break;
+                postMessage({ type: 'stopped', message: 'Evolution interrupted', complete: true });
+                return;
             }
         }
         population = selectSurvivors(nextGen, population.length);
+        await tick();
         n++;        
     }
-    console.log('worker: done evolving');
-    self.postMessage({message: 'done evolving', survivors : population});
-    self.postMessage({ type: 'stopped'});
+    
+    postMessage({type: 'stopped', message: `Done evolving, final population ${population.length}`, population, complete: true,
+        count : n, total: rounds });    
 }
 
 function selectSurvivors (offspring: ScheduleInfo[], targetSize: number) {
@@ -109,17 +127,17 @@ self.onmessage = (e) => {
                 break;
 
             case "stop":
-                // Stop the current process
-                stop();
-                self.postMessage({ message: "stopped" });
+                // Stop the current process                
+                stop();                
                 break;
 
             default:
-                self.postMessage({ type: "error", message: `Unknown type: ${type}` });
+                postMessage({ type: "error", message: `Unknown type: ${type}` });
         }
     } catch (err) {
         // Catch any errors and send back to the main thread
 
-        self.postMessage({ type: "error", message: err.message });
+        postMessage({ type: "error", message: err.message });
     }
 };
+

@@ -1,22 +1,35 @@
 <script lang="ts">	
+
+	
 	import { compareSchedules, type Similarity } from './../scheduler/hillclimbing/compareSchedules';
-  
+
   import ScheduleSummary from './ScheduleSummary.svelte';
 
-    import { Button, Select, Row, TabBar, TabItem } from 'contain-css-svelte';
-    import type { StudentPreferences, Activity, ScheduleInfo } from './../types.ts';
+    import { Button, Bar, Select, TabBar, TabItem, Progress, FormItem } from 'contain-css-svelte';
+
+    import type { StudentPreferences, Activity, ScheduleInfo, WorkerMessage } from './../types.ts';
     import { GoogleAppsScript } from "./gasApi";
     import { onMount } from "svelte";
     import { algNames } from '../scheduler/hillclimbing/generator';
   import { WorkerPool } from './lib/workerPool';
+    
     let generatorAlgs : string[] | undefined;
+    
     export let data: {
       studentPreferences: StudentPreferences[],
       activities: Activity[],
-    };
-    
+    };    
+        
 
     let worker: Worker | null = null;
+
+    let workerMessages : {
+      [key: string]: WorkerMessage
+    } = {};
+
+    let workerIds : string[] = [];
+    $: workerIds = Object.keys(workerMessages);
+
     let workerMessage: string = "No message received yet.";
     let schedules: ScheduleInfo[] = [];
     let scheduleIdSet : Set<string> = new Set();
@@ -52,66 +65,68 @@
       // Listen for messages from the worker
       worker.onmessage = (event) => {
         const message = event.data;
+        let id = message.id;
         console.log('Svelte got worker message: ',message);
         // Handle different message types from the worker
         switch (message.type) {
           case "generated":
             if (addSchedule(message.schedule)) {
-              workerMessage = "Generated a new schedule.";
+              workerMessages[id] = message;
             } else {
-              workerMessage = "Generated a duplicate schedule.";
+              workerMessages[id] = message;
             }
             break;
   
           case "improved":
             if (addSchedule(message.schedule)) {
-              workerMessage = "Improved a schedule.";
+              workerMessages[id] = message;
             } else {
-              workerMessage = "Improved a duplicate schedule.";
+              workerMessages[id] = {message: 'Improvement yielded a duplicate...',
+              ...message};
             }
             break;
   
           case "evolved":
             if (addSchedule(message.schedule)) {
-              workerMessage = "Evolved a schedule.";
+              workerMessages[id] = message;
             } else {
-              workerMessage = "Evolved a duplicate schedule.";
+              workerMessages[id] = {...message, text:"Evolution yielded a duplicate..."}
             }                        
             break;
   
           case "error":
-            workerMessage = `Error: ${message.message}`;
+            workerMessages[id] = message;
             running = false;
             break;
   
           case "stopped":
-            workerMessage = "Worker process stopped.";
+            workerMessages[id] = message;
             running = false;
             break;
   
           default:
-            workerMessage = `Unknown message: (see console)`;
+            workerMessages[id] = message;
         }
       };
     };
   
     // Stop the worker process
-    const stopWorker = () => {
-      if (worker && running) {
-        worker.postMessage({ type: "stop" });
+    const stopWorker = (id) => {
+      if (worker) {
+        worker.postMessage({ type: "stop", id });
         running = false;
       }
     };
   
     // Generate schedules
     const generateSchedules = () => {
-      if (worker && !running) {
+      if (worker ) {
         worker.postMessage({
           type: "generate",
           payload: {
             prefs: data.studentPreferences,
             activities: data.activities,
-            rounds: 10,
+            rounds: rounds,
             algs: generatorAlgs,
           },
         });
@@ -127,6 +142,7 @@
             schedule: schedule,
             prefs: data.studentPreferences,
             activities: data.activities,
+            stopAfter: null,
           },
         });
         workerMessage = "Improving the best schedule...";
@@ -135,7 +151,7 @@
 
     // Improve a schedule
     const improveBestSchedule = () => {
-      if (worker && schedules.length > 0 && !running) {
+      if (worker && schedules.length > 0) {
         const bestSchedule = schedules.reduce((a, b) =>
           a.score > b.score ? a : b
         );
@@ -143,13 +159,13 @@
       }
     };
     const improveRandomSchedule = () => {
-      if (worker && schedules.length > 0 && !running) {
+      if (worker && schedules.length > 0) {
         const randomSchedule = schedules[Math.floor(Math.random() * schedules.length)];
         improveSchedule(randomSchedule);
       }
     };
     const improveMostRecentSchedule = () => {
-      if (worker && schedules.length > 0 && !running) {
+      if (worker && schedules.length > 0) {
         const mostRecentSchedule = schedules[schedules.length-1];
         improveSchedule(mostRecentSchedule);
       }
@@ -164,11 +180,11 @@
         }
     }
   
-
+    let rounds = 10;
 
     // Evolve schedules
     const evolveSchedules = () => {
-      if (worker && schedules.length > 2 && !running) {
+      if (worker && schedules.length > 2) {
         let sortedSchedules = [...schedules].sort(
             (a, b) => b.score - a.score
         );
@@ -190,7 +206,7 @@
             population,
             prefs: data.studentPreferences,
             activities: data.activities,
-            rounds: 5,
+            rounds,
           },
         });        
         workerMessage = "Evolving schedules...";
@@ -241,20 +257,42 @@
       }}>Save Build Data</Button>
     {:else if tab == 'build'}
     <div class="progress">      
-      <p>MSG: {workerMessage}</p>
-      {#if running}
-      <Button on:click={stopWorker} disabled={!running}>Stop</Button>
-      {/if}
-    </div>
-    <Select bind:value={generatorAlgs}>
-      <option value={undefined}>All</option>
-      {#each algNames as algName}
-          <option value={[algName]}>{camelCaseToEnglish(algName)}</option>
+      {#each workerIds as id}
+        {@const message = workerMessages[id]}
+        <Bar>
+          <Progress state={message.complete ? "complete" : "inprogress"} indeterminate={!message.total}
+          --progress-font-size="12px" --progress-height="4em"
+            max={message.total} value={message.count}
+            key={id}>
+            {#if message.message}{message.message} {/if}
+            {#if message.schedule}
+              <b>{message.schedule.score}</b> 
+              ({message.schedule.alg}) 
+              <span style="font-size:x-small">{message.schedule.id.slice(0,3)}...{message.schedule.id.slice(-3)}</span>
+            {/if}
+          </Progress>
+          <Button on:click={()=>stopWorker(id)}>Stop</Button>
+        </Bar>
+        
       {/each}
-    </Select>
+      
+    </div>
+    <FormItem>
+        <span slot="label">Algorithms to Use</span>
+      <Select bind:value={generatorAlgs}>
+        <option value={undefined}>All</option>
+        {#each algNames as algName}
+            <option value={[algName]}>{camelCaseToEnglish(algName)}</option>
+        {/each}
+      </Select>
+    </FormItem>
+    <FormItem>
+        <span slot="label">Rounds</span>
+        <input type="number" bind:value={rounds} />
+    </FormItem>    
     <Button primary disabled={0&&running} on:click={generateSchedules}>Generate Schedules</Button>
     {#if schedules.length}
-      <Button disabled={0&&running} on:click={improveBestSchedule}>Improve Best Schedule</Button>
+      
         <hr />
         <Button disabled={0&&running} on:click={improveAGoodSchedule}>Improve a Good Schedule</Button>
         <Button disabled={0&&running} on:click={improveRandomSchedule}>Improve a Random Schedule</Button>
@@ -266,6 +304,7 @@
       
       {#if bestSchedule}
         <h3>Best Schedule Yet</h3>
+        <Button disabled={0&&running} on:click={improveBestSchedule}>Improve Best Schedule</Button>
         <ScheduleSummary schedule={bestSchedule}></ScheduleSummary>        
       {/if}    
       {#if mostRecentSchedule}
