@@ -40,13 +40,36 @@ const assignFunctions = [
     assignByCohortMinSize, assignByCohortMedianSize, assignByThrees, assignByFives, assignByTens, assignByTwenties
 ];
 
-export const algNames = assignFunctions.map(f => f.name);
+export const algNames = [
+    'Most Constrained', 
+    'Activity First', 
+    'Peer First', 
+    'Priority', 
+    'Cohort Min Size', 'Cohort Median Size', 'Threes', 'Fives', 'Tens', 'Twenties'
+];
+const nameToFunction = {
+    'Most Constrained': assignByMostConstrained,
+    'Activity First': assignByActivity, 
+    'Peer First': assignByPeer, 
+    'Priority': assignByPriority, 
+    'Cohort Min Size': assignByCohortMinSize, 
+    'Cohort Median Size': assignByCohortMedianSize, 
+    'Threes': assignByThrees, 
+    'Fives': assignByFives, 
+    'Tens': assignByTens, 
+    'Twenties': assignByTwenties
+}
+const functionsToName = new Map();
+for (let k in nameToFunction) {
+    functionsToName.set(nameToFunction[k], k);
+}
+
 
 export function* generate (prefs : StudentPreferences[], activities: Activity[], nrounds: number, algs : string[]) {
     let existingIds = new Set();
     let myAssignFunctions = assignFunctions;    
-    if (algs && algs.length) {
-        myAssignFunctions = assignFunctions.filter(f => algs.includes(f.name));
+    if (algs && algs.length) {        
+        myAssignFunctions = algs.map(a => nameToFunction[a]);
     } 
     for (let s of schedules) {
         existingIds.add(s.id);
@@ -59,7 +82,7 @@ export function* generate (prefs : StudentPreferences[], activities: Activity[],
                 let schedule = alg(shuffledPrefs, activities);                
                 let info = createScheduleInfo(
                     schedule,
-                    prefs, activities, alg.name, 0
+                    prefs, activities, functionsToName.get(alg), 0
                 );
                 if (!existingIds.has(info.id)) {
                     existingIds.add(info.id);
