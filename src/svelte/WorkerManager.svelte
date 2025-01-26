@@ -1,4 +1,6 @@
-<script lang="ts">	
+<script lang="ts">
+  import BuildExplorer from './BuildExplorer.svelte';
+	
 
 	
 	import { compareSchedules, type Similarity } from './../scheduler/hillclimbing/compareSchedules';
@@ -213,6 +215,23 @@
         running = true;
       }
     };
+
+    function evolveScheduleGroup (group : ScheduleInfo[]) {
+      if (worker && group.length > 2) {        
+        
+        worker.postMessage({
+          type: "evolve",
+          payload: {
+            population : group,
+            prefs: data.studentPreferences,
+            activities: data.activities,
+            rounds,
+          },
+        });        
+        workerMessage = "Evolving schedules...";
+        running = true;
+      }
+    }
   
     // Cleanup the worker on component unmount
     onMount(() => {
@@ -236,89 +255,101 @@
       cohortSimilarity : 0
     };
     $: recentDiff = mostRecentSchedule && bestSchedule && compareSchedules(mostRecentSchedule?.schedule,bestSchedule?.schedule);
-    let tab : 'save' | 'load' | 'build' = 'load';
+    let tab : 'save' | 'load' | 'build' | 'explore' = 'load';
+    let scheduleInfoTab = 'recent';
   </script>
   {#if data}
-  <div>
-    <TabBar>
-      <TabItem active={tab=='load'} on:click={()=>tab="load"}>Load</TabItem>
-      <TabItem active={tab=='save'} on:click={()=>tab="save"}>Save</TabItem>
-      <TabItem active={tab=='build'} on:click={()=>tab="build"}>Build</TabItem>      
-    </TabBar>
-    {#if tab == 'load'}
-      <Button on:click={()=>{
-        GoogleAppsScript.readBuildData().then((data)=>{
-            schedules = data;
-        });
-    }}>Load Build Data</Button>
-    {:else if tab == 'save'}
-      <Button on:click={()=>{
-        GoogleAppsScript.writeBuildData(schedules);    
-      }}>Save Build Data</Button>
-    {:else if tab == 'build'}
-    <div class="progress">      
-      {#each workerIds as id}
-        {@const message = workerMessages[id]}
-        <Bar>
-          <Progress state={message.complete ? "complete" : "inprogress"} indeterminate={!message.total}
-          --progress-font-size="12px" --progress-height="4em"
-            max={message.total} value={message.count}
-            key={id}>
-            {#if message.message}{message.message} {/if}
-            {#if message.schedule}
-              <b>{message.schedule.score}</b> 
-              ({message.schedule.alg}) 
-              <span style="font-size:x-small">{message.schedule.id.slice(0,3)}...{message.schedule.id.slice(-3)}</span>
-            {/if}
-          </Progress>
-          <Button on:click={()=>stopWorker(id)}>Stop</Button>
-        </Bar>
-        
-      {/each}
-      
-    </div>
-    <FormItem>
-        <span slot="label">Algorithms to Use</span>
-      <Select bind:value={generatorAlgs}>
-        <option value={undefined}>All</option>
-        {#each algNames as algName}
-            <option value={[algName]}>{camelCaseToEnglish(algName)}</option>
-        {/each}
-      </Select>
-    </FormItem>
-    <FormItem>
-        <span slot="label">Rounds</span>
-        <input type="number" bind:value={rounds} />
-    </FormItem>    
-    <Button primary disabled={0&&running} on:click={generateSchedules}>Generate Schedules</Button>
-    {#if schedules.length}
-      
-        <hr />
-        <Button disabled={0&&running} on:click={improveAGoodSchedule}>Improve a Good Schedule</Button>
-        <Button disabled={0&&running} on:click={improveRandomSchedule}>Improve a Random Schedule</Button>
-        <Button disabled={0&&running || schedules.length < 4} on:click={evolveSchedules} >
-          Evolve Some Schedules
-        </Button>
-      <hr/>    
-      <b>{schedules.length} Total Schedules</b>
-      
-      {#if bestSchedule}
-        <h3>Best Schedule Yet</h3>
-        <Button disabled={0&&running} on:click={improveBestSchedule}>Improve Best Schedule</Button>
-        <ScheduleSummary schedule={bestSchedule}></ScheduleSummary>        
-      {/if}    
-      {#if mostRecentSchedule}
-        <h3>Most Recent Schedule</h3>
-        <ScheduleSummary schedule={mostRecentSchedule} comparison={recentDiff}></ScheduleSummary>
-        <Button disabled={0&&running} on:click={()=>{improveMostRecentSchedule()}}>Improve this Schedule</Button>        
-      {/if}            
-      {:else}
-        <p>No schedules generated yet.</p>
+    <div>
+      <TabBar>
+        <TabItem active={tab=='load'} on:click={()=>tab="load"}>Load</TabItem>
+        <TabItem active={tab=='save'} on:click={()=>tab="save"}>Save</TabItem>
+        <TabItem active={tab=='build'} on:click={()=>tab="build"}>Build</TabItem>      
+        <TabItem active={tab=='explore'} on:click={()=>tab="explore"}>Explore</TabItem>
+      </TabBar>
+      {#if tab == 'load'}
+        <Button on:click={()=>{
+          GoogleAppsScript.readBuildData().then((data)=>{
+              schedules = data;
+          });
+      }}>Load Build Data</Button>
+      {:else if tab == 'save'}
+        <Button on:click={()=>{
+          GoogleAppsScript.writeBuildData(schedules);    
+        }}>Save Build Data</Button>
+      {:else if tab == 'build'}
+        <div class="progress">      
+          {#each workerIds as id}
+            {@const message = workerMessages[id]}
+            <Bar>
+              <Progress state={message.complete ? "complete" : "inprogress"} indeterminate={!message.total}
+              --progress-font-size="12px" --progress-height="4em"
+                max={message.total} value={message.count}
+                key={id}>
+                {#if message.message}{message.message} {/if}
+                {#if message.schedule}
+                  <b>{message.schedule.score}</b> 
+                  ({message.schedule.alg}) 
+                  <span style="font-size:x-small">{message.schedule.id.slice(0,3)}...{message.schedule.id.slice(-3)}</span>
+                {/if}
+              </Progress>
+              <Button on:click={()=>stopWorker(id)}>Stop</Button>
+            </Bar>
+            
+          {/each}
+          
+        </div>
+        <FormItem>
+            <span slot="label">Algorithms to Use</span>
+          <Select bind:value={generatorAlgs}>
+            <option value={undefined}>All</option>
+            {#each algNames as algName}
+                <option value={[algName]}>{camelCaseToEnglish(algName)}</option>
+            {/each}
+          </Select>
+        </FormItem>
+        <FormItem>
+            <span slot="label">Rounds</span>
+            <input type="number" bind:value={rounds} />
+        </FormItem>    
+        <Button primary disabled={0&&running} on:click={generateSchedules}>Generate Schedules</Button>
+        {#if schedules.length}
+          
+            <hr />
+            <Button disabled={0&&running} on:click={improveAGoodSchedule}>Improve a Good Schedule</Button>
+            <Button disabled={0&&running} on:click={improveRandomSchedule}>Improve a Random Schedule</Button>
+            <Button disabled={0&&running || schedules.length < 4} on:click={evolveSchedules} >
+              Evolve Some Schedules
+            </Button>
+          <hr/>    
+          <b>{schedules.length} Total Schedules</b>
+        {#if bestSchedule && mostRecentSchedule}
+        <TabBar>
+          <TabItem active={scheduleInfoTab=='best'} on:click={()=>scheduleInfoTab='best'}>Best ({bestSchedule.score})</TabItem>
+          <TabItem active={scheduleInfoTab=='recent'} on:click={()=>scheduleInfoTab='recent'}>Latest ({mostRecentSchedule.score})</TabItem>
+        </TabBar>
+          {#if bestSchedule && scheduleInfoTab == 'best'}
+            <h3>Best Schedule Yet</h3>
+            <Button disabled={0&&running} on:click={improveBestSchedule}>Improve Best Schedule</Button>
+            <ScheduleSummary schedule={bestSchedule}></ScheduleSummary>        
+          {/if}    
+          {#if mostRecentSchedule && scheduleInfoTab == 'recent'}
+            <h3>Most Recent Schedule</h3>
+            <ScheduleSummary schedule={mostRecentSchedule} comparison={recentDiff}></ScheduleSummary>
+            <Button disabled={0&&running} on:click={()=>{improveMostRecentSchedule()}}>Improve this Schedule</Button>        
+          {/if}                  
+        {:else}
+          <p>No schedules generated yet.</p>
+        {/if}   
       {/if}                  
-    {/if}
-  </div>
+    {:else if tab == 'explore'} 
+        <BuildExplorer {data} {schedules} {bestSchedule}
+          onEvolve={evolveScheduleGroup} 
+          onImprove={improveSchedule} 
+          onWrite={(schedInfo)=>GoogleAppsScript.writeSchedule(schedInfo.schedule)}
+          />
+    {/if}  
+    </div>
   {/if}
-
   <style>
     .progress {
       margin-bottom: 1rem;

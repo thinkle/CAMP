@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SimilarityIndicator from './SimilarityIndicator.svelte';
 	import type { Similarity } from './../scheduler/hillclimbing/compareSchedules.ts';
   import { Button } from 'contain-css-svelte';
 
@@ -15,7 +16,7 @@
         }
     }
 
-    $: updateTimestamp(schedule.id);
+    $: updateTimestamp(schedule.id);    
     
 </script>  
 
@@ -39,17 +40,15 @@
     <tr>
         <th>Write Schedule?</th>
         <td><Button on:click={
-            GoogleAppsScript.writeSchedule(schedule.schedule)
+            ()=>GoogleAppsScript.writeSchedule(schedule.schedule)
         }>Write Schedule</Button></td>
     </tr>
     {#if comparison}
         <tr>
-            <th>Assignment Similarity</th>
-            <td>{comparison.assignmentSimilarity}</td>
-        </tr>
-        <tr>
-            <th>Cohort Similarity</th>
-            <td>{comparison.cohortSimilarity}</td>
-        </tr>
+            <th>Similarity to Best</th>
+            <td>
+                <SimilarityIndicator similarity={comparison}></SimilarityIndicator>
+            </td>
+        </tr>        
     {/if}
 </table>
