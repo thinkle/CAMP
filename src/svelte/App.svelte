@@ -8,10 +8,8 @@
 	import type { StudentPreferences, Activity } from './../types.ts';
   import SetupSheets from './SetupSheets.svelte';
 
-  import { Block, Icon } from "google-apps-script-svelte-components";  
   import { GoogleAppsScript } from "./gasApi";
-  import { onMount } from "svelte";
-  import { Button } from "contain-css-svelte";
+  import { Button, Container, Accordion } from "contain-css-svelte";
   import "contain-css-svelte/vars/defaults.css"
   import "contain-css-svelte/vars/themes/light.css"
   import "contain-css-svelte/vars/themes/typography-airy.css"    
@@ -29,25 +27,34 @@
     data.studentPreferences = data.studentPreferences.filter(sp => sp.activity.length > 0);
     console.log('Filtered out',ogLength - data.studentPreferences.length,'students with no activities');
   }
+  
 
 </script>
 
-<main>
+<Container --container-max-width="320px" height="100vw" --font-size="14px" --gap="2px" --padding="4px 2px" --border-radius="0">
   <h1>CAMP</h1>
-  <Block>
+  
     <h2>The Companion & Activity Matching Planner</h2>            
-  </Block>  
-  <Block>
-    <SetupSheets></SetupSheets>
-  </Block>
-  <Block>
-    <Button on:click={readData} >Load Preferences</Button>    
-  </Block>
-  <Block>
-    <WorkerManager {data}></WorkerManager>
-  </Block>  
+    <Accordion>
+      <details>
+        <summary>Set-Up</summary>
+        <SetupSheets></SetupSheets>
+        <Button on:click={readData} >Load Preferences</Button>
+        <DataPreview {data}></DataPreview>    
+      </details>
+      <details>
+        <summary>Build Schedule</summary>
+        <WorkerManager {data}></WorkerManager>
+      </details>
+    </Accordion>
+      
+    
+      
+  
+    
+  
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
-  <DataPreview {data}></DataPreview>
+  
   <div>
     <span class="gray">
       Created with
@@ -61,7 +68,7 @@
       <a target="_blank" href="https://www.tomhinkle.net"> Tom Hinkle </a>
     </span>
   </div>
-</main>
+</Container>
 
 <style>
 </style>
