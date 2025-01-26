@@ -83,8 +83,7 @@ function getMergedName(schedule1: ScheduleInfo, schedule2: ScheduleInfo): string
     // Extract the root algorithm names from both schedules
     const algorithms = [schedule1.alg, schedule2.alg]
     let p1Base = schedule1.alg.split('+')[0];
-    let p2Base = schedule2.alg.split('+')[0];
-    debugger;
+    let p2Base = schedule2.alg.split('+')[0];    
     let algs = new Set([...p1Base.split('-'),...p2Base.split('-')]);
     const algNames = Array.from(algs).sort();    
     // Determine the next generation number
