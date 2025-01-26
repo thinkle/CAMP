@@ -82,15 +82,16 @@ export function* createCrosses (population : ScheduleInfo[], studentPreferences 
 function getMergedName(schedule1: ScheduleInfo, schedule2: ScheduleInfo): string {
     // Extract the root algorithm names from both schedules
     const algorithms = [schedule1.alg, schedule2.alg]
-      .flatMap((alg) => alg.split("+")[0]) // Extract the root algorithm name (first part before "+" if present)
-      .filter((alg, index, self) => self.indexOf(alg) === index) // Deduplicate names
-      .join("+");
-  
+    let p1Base = schedule1.alg.split('+')[0];
+    let p2Base = schedule2.alg.split('+')[0];
+    debugger;
+    let algs = new Set([...p1Base.split('-'),...p2Base.split('-')]);
+    const algNames = Array.from(algs).sort();    
     // Determine the next generation number
     const generation = Math.max(schedule1.generation, schedule2.generation) + 1;
   
     // Return the concise name
-    return `${algorithms}-GA-G${generation}`;
+    return `${algNames.join('-')}+GA${generation}`;
   }
 
 
