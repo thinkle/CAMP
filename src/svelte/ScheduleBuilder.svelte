@@ -7,7 +7,7 @@
 	import type { StudentPreferences, Activity, Schedule, ScheduleInfo } from '../types.js';
   import SetupSheets from './SetupSheets.svelte';
 
-  import { Block, Icon } from "google-apps-script-svelte-components";  
+
   import { GoogleAppsScript } from "./gasApi.js";
   import { onMount, tick } from "svelte";
   import { Button } from "contain-css-svelte";

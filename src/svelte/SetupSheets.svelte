@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Block, Icon } from "google-apps-script-svelte-components";
+  
   import { GoogleAppsScript } from "./gasApi";
 
   import { Button, Checkbox, FormItem } from "contain-css-svelte";
@@ -42,7 +42,7 @@
 
 <Checkbox bind:checked={inSetupMode}>Setup Sheets</Checkbox>
 {#if inSetupMode}
-  <Block>
+  
     <h2>Setup Sheet</h2>
     <FormItem>
       <span slot="label"># Peers</span>
@@ -77,7 +77,7 @@
     {:else if state == "done"}
       <p>Done!</p>
     {/if}
-  </Block>
+  
 {/if}
 
 <style>
