@@ -31,7 +31,7 @@
 
 </script>
 
-<Container --container-max-width="320px" height="100vw" --font-size="14px" --gap="2px" --padding="4px 2px" --border-radius="0">
+<Container --container-max-width="320px" height="100vh" --font-size="14px" --gap="2px" --padding="4px 2px" --border-radius="0">
   <h1>CAMP</h1>
   
     <h2>The Companion & Activity Matching Planner</h2>            
