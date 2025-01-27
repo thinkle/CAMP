@@ -1,4 +1,5 @@
-import { activityColumnName, preferenceSheetName, activitySheetName } from "./constants";
+import { ActivityPreference } from "../types";
+import { activityColumnName, preferenceSheetName, activitySheetName, universalPrefsSheetName, buildDataSheetName } from "./constants";
 export const IDCOL = 'identifier';
 export const ASSIGNED_ACTIVITY_COL = 'activity';
 export const OVERRIDE_COL = 'override';
@@ -160,12 +161,14 @@ export function getActivitiesSheet() {
 export const ID_HEADER = 'id';
 export const ALG_HEADER = 'alg';
 export const GEN_HEADER = 'generation';
-const BUILD_HEADERS = [SCORE_HEADER,GEN_HEADER,ALG_HEADER,ID_HEADER];
+
+export const HASH_HEADER = 'hash';
+const BUILD_HEADERS = [SCORE_HEADER,GEN_HEADER,ALG_HEADER,ID_HEADER, HASH_HEADER];
 
 export function getBuildSheet () {
-    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Build');
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(buildDataSheetName);
     if (!sheet) {
-        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('Build');
+        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(buildDataSheetName);
         setupBuildSheet(sheet);
     }
     return sheet;
@@ -174,6 +177,38 @@ export function getBuildSheet () {
 export function setupBuildSheet (sheet : GoogleAppsScript.Spreadsheet.Sheet) {        
     sheet.setFrozenRows(1);
     sheet.appendRow(BUILD_HEADERS);
+}
+
+export function getUniversalPrefsSheet () {
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(universalPrefsSheetName);
+    if (!sheet) {
+        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(universalPrefsSheetName);
+        setupUniversalPrefsSheet(sheet);
+    }
+    return sheet;
+}
+
+export function getUniversalPrefsData () : ActivityPreference[] {
+    let sheet = getUniversalPrefsSheet();
+    let data = sheet.getDataRange().getValues();
+    let headers = data[0];
+    let activityIndex = headers.indexOf('activity');
+    let weightIndex = headers.indexOf('weight');
+    let prefs : ActivityPreference[] = [];
+    for (let i=1; i<data.length; i++) {
+        let row = data[i];
+        let activity = row[activityIndex];
+        let weight = row[weightIndex];
+        prefs.push({activity, weight});
+    }
+    return prefs;
+}
+
+export function setupUniversalPrefsSheet (sheet : GoogleAppsScript.Spreadsheet.Sheet) {
+    let columns = ['activity','weight'];    
+    sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
+    sheet.setFrozenRows(1);
+    sheet.setFrozenColumns(1);
 }
 
 

@@ -6,7 +6,7 @@ import type {
 } from "../types";
 
   // Import sheet getters from your setupSheets module:
-  import { getActivitiesSheet, getPreferencesSheet, ID_HEADER, IDCOL, OVERRIDE_COL, STARTER_COLS } from "./setupSheets";
+  import { getActivitiesSheet, getPreferencesSheet, getUniversalPrefsData, ID_HEADER, IDCOL, OVERRIDE_COL, STARTER_COLS } from "./setupSheets";
   
   /**
    * Reads data from the "Activities" sheet and the "Preferences" sheet,
@@ -36,6 +36,8 @@ import type {
       activities.push({ activity: activityName, capacity });
     }
   
+
+
     // --------------------------------------
     // 2. Read and parse data from Preferences sheet
     // --------------------------------------
@@ -118,6 +120,20 @@ import type {
           activity: activityPrefs,
           peer: peerPrefs,
         });
+      }
+    }
+
+    const universalPreferences = getUniversalPrefsData();
+    // Add universal preferences to each student
+    for (let student of studentPreferences) {
+      for (let pref of universalPreferences) {
+        if (pref.activity) {
+          if (student.activity.find(a => a.activity === pref.activity)) {
+            continue;
+          } else {
+            student.activity.push({ ...pref});
+          }
+        }
       }
     }
   
