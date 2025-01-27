@@ -18,7 +18,6 @@ export function showSidebar() {
   }
 }
 
-
 export function showDialog(title: string = APPNAME, modal = true) {
   let addOn = getAddOnEnvironment();
   let template = HtmlService.createTemplateFromFile(IDX);

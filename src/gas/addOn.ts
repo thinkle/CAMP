@@ -8,7 +8,7 @@ export interface UniversalMenuInterface {
 }
 
 const universalMenu: UniversalMenuInterface = {
-  addToMenu(menu: GoogleAppsScript.Base.Menu) {    
+  addToMenu(menu: GoogleAppsScript.Base.Menu) {
     menu.addItem("Open Scheduler", "showSidebar");
   },
 };
@@ -23,7 +23,7 @@ export function getAddOnEnvironment():
 
 export function onOpen(e: any): void {
   // Call all registered AddOn onOpen methods...
-  let ui: GoogleAppsScript.Base.Ui;  
+  let ui: GoogleAppsScript.Base.Ui;
   const menu = SpreadsheetApp.getUi().createMenu("CAMP");
   universalMenu.addToMenu(menu);
   menu.addToUi();

@@ -8,17 +8,23 @@ describe("assignByPeer", () => {
       {
         identifier: "alice",
         peer: [{ peer: "bob", weight: 10 }],
-        activity: [{ activity: "A", weight: 5 }, { activity: "B", weight: 4 }]
+        activity: [
+          { activity: "A", weight: 5 },
+          { activity: "B", weight: 4 },
+        ],
       },
       {
         identifier: "bob",
         peer: [],
-        activity: [{ activity: "A", weight: 10 }, { activity: "B", weight: 5 }]
-      }
+        activity: [
+          { activity: "A", weight: 10 },
+          { activity: "B", weight: 5 },
+        ],
+      },
     ];
     const activities: Activity[] = [
       { activity: "A", capacity: 2 },
-      { activity: "B", capacity: 2 }
+      { activity: "B", capacity: 2 },
     ];
 
     const schedule = assignByPeer(prefs, activities);
@@ -28,9 +34,9 @@ describe("assignByPeer", () => {
     //  -> She picks her own top activity, "A"
     // Next, "bob" is assigned:
     //  -> He sees no peers, picks "A" as well.
-    // Actually, interestingly, "alice" didn't see bob assigned. So she took A. Bob also took A. 
+    // Actually, interestingly, "alice" didn't see bob assigned. So she took A. Bob also took A.
     // Both end up in A. Perfectly valid for this test.
-    
+
     expect(schedule).toContainEqual({ student: "alice", activity: "A" });
     expect(schedule).toContainEqual({ student: "bob", activity: "A" });
   });
@@ -39,27 +45,36 @@ describe("assignByPeer", () => {
     const prefs: StudentPreferences[] = [
       {
         identifier: "student1",
-        peer: [{ peer: "student2", weight: 8 }, { peer: "student3", weight: 6 }],
-        activity: [{ activity: "ActX", weight: 9 }, { activity: "ActY", weight: 7 }]
+        peer: [
+          { peer: "student2", weight: 8 },
+          { peer: "student3", weight: 6 },
+        ],
+        activity: [
+          { activity: "ActX", weight: 9 },
+          { activity: "ActY", weight: 7 },
+        ],
       },
       {
         identifier: "student2",
         peer: [],
-        activity: [{ activity: "ActX", weight: 10 }]
+        activity: [{ activity: "ActX", weight: 10 }],
       },
       {
         identifier: "student3",
         peer: [],
-        activity: [{ activity: "ActX", weight: 10 }, { activity: "ActY", weight: 9 }]
-      }
+        activity: [
+          { activity: "ActX", weight: 10 },
+          { activity: "ActY", weight: 9 },
+        ],
+      },
     ];
     const activities: Activity[] = [
       { activity: "ActX", capacity: 2 },
-      { activity: "ActY", capacity: 2 }
+      { activity: "ActY", capacity: 2 },
     ];
 
     // "student1" goes first, sees "student2" and "student3" are not assigned => can't join them.
-    //  to "ActX" (weight=9). 
+    //  to "ActX" (weight=9).
     // then "student2" picks "ActX". "student3" picks "ActX" if capacity left, else "ActY".
     const schedule = assignByPeer(prefs, activities);
     expect(schedule.length).toBe(3);
@@ -70,24 +85,25 @@ describe("assignByPeer", () => {
       {
         identifier: "s1",
         peer: [{ peer: "s2", weight: 10 }],
-        activity: [{ activity: "A", weight: 5 }]
+        activity: [{ activity: "A", weight: 5 }],
       },
       {
         identifier: "s2",
         peer: [],
-        activity: [{ activity: "A", weight: 5 }]
+        activity: [{ activity: "A", weight: 5 }],
       },
       {
         identifier: "s3",
         peer: [],
-        activity: [{ activity: "A", weight: 5 }]
-      }
+        activity: [{ activity: "A", weight: 5 }],
+      },
     ];
     const activities: Activity[] = [{ activity: "A", capacity: 2 }];
 
-    // There's only capacity for 2 students, but we have 3. 
+    // There's only capacity for 2 students, but we have 3.
     // The third fails to get assigned, so we expect an error
-    expect(() => assignByPeer(prefs, activities))
-      .toThrowError(/No available activities for student: s3/);
+    expect(() => assignByPeer(prefs, activities)).toThrowError(
+      /No available activities for student: s3/
+    );
   });
 });

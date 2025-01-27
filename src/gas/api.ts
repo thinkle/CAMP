@@ -16,17 +16,19 @@ export { addMockData } from "./mockData";
 
 export { setupPreferencesSheet, setupActivitiesSheet } from "./setupSheets";
 
-export function areDataSheetsSetup () {
+export function areDataSheetsSetup() {
   let ss = SpreadsheetApp.getActiveSpreadsheet();
   let preferenceSheet = ss.getSheetByName(preferenceSheetName);
   let activitySheet = ss.getSheetByName(activitySheetName);
   return preferenceSheet && activitySheet;
 }
 
-export function doSomething () { return 10}
-
-export function getWorkerScript() {
-  const scriptContent = HtmlService.createHtmlOutputFromFile("worker.js.html").getContent();
-  return ContentService.createTextOutput(scriptContent).getContent();
+export function doSomething() {
+  return 10;
 }
 
+export function getWorkerScript() {
+  const scriptContent =
+    HtmlService.createHtmlOutputFromFile("worker.js.html").getContent();
+  return ContentService.createTextOutput(scriptContent).getContent();
+}

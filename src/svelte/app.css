@@ -1,17 +1,17 @@
 #app {
-    --primary-bg : var(--material-color-brown-500);
-    --primary-fg : var(--material-color-brown-50);
-    --fg: var(--material-color-green-300);
-    --bg: #fff;
-    --white: #fff;
-    --black: var(--material-color-brown-900);
-    --heading-fg: var(--material-color-green-700);
-    --secondary-bg: var(--material-color-brown-100);
-    --secondary-fg: var(--material-color-brown-900);
-    --control-bg: var(--material-light-blue-200);
-    --control-fg: var(--material-light-blue-900);
-    --container-bg: var(--material-color-brown-50);
-    --accordion-icon: '+';
-    --accordion-icon-transform: rotate(45deg);
-    --heading-margin-top: 0;
+  --primary-bg: var(--material-color-brown-500);
+  --primary-fg: var(--material-color-brown-50);
+  --fg: var(--material-color-green-300);
+  --bg: #fff;
+  --white: #fff;
+  --black: var(--material-color-brown-900);
+  --heading-fg: var(--material-color-green-700);
+  --secondary-bg: var(--material-color-brown-100);
+  --secondary-fg: var(--material-color-brown-900);
+  --control-bg: var(--material-light-blue-200);
+  --control-fg: var(--material-light-blue-900);
+  --container-bg: var(--material-color-brown-50);
+  --accordion-icon: "+";
+  --accordion-icon-transform: rotate(45deg);
+  --heading-margin-top: 0;
 }

@@ -16,23 +16,25 @@ export function computeHappinessForStudent(
   activityName: string,
   occupantList: StudentPreferences[]
 ): {
-  happiness : number,
-  mutualHappiness : number
+  happiness: number;
+  mutualHappiness: number;
 } {
   let othersHedons = 0;
   let ownHedons = 0;
   // 1) Find the student's preference weight for the given activity
-  const activityPref = student.activity.find(a => a.activity === activityName);
+  const activityPref = student.activity.find(
+    (a) => a.activity === activityName
+  );
   const activityWeight = activityPref ? activityPref.weight : 0;
-  
+
   // 2) Peer synergy: sum the weights for peers who are in occupantList
-  let peerSum = 0;  
+  let peerSum = 0;
   for (const p of student.peer) {
     // If p.peer is in occupantList, add p.weight
-    let peer = occupantList.find((o)=>o.identifier==p.peer);
+    let peer = occupantList.find((o) => o.identifier == p.peer);
     if (peer) {
       peerSum += p.weight;
-      let peerPrefForMe = peer.peer.find((p)=>p.peer==student.identifier);
+      let peerPrefForMe = peer.peer.find((p) => p.peer == student.identifier);
       if (peerPrefForMe) {
         peerSum += peerPrefForMe.weight;
       }
@@ -40,7 +42,7 @@ export function computeHappinessForStudent(
   }
 
   return {
-    happiness : activityWeight + peerSum,
-    mutualHappiness : peerSum + activityWeight + peerSum
-  }
+    happiness: activityWeight + peerSum,
+    mutualHappiness: peerSum + activityWeight + peerSum,
+  };
 }

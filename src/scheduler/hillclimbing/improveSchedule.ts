@@ -1,29 +1,34 @@
-
-import type { Schedule, Activity, StudentPreferences, ScheduleInfo } from "../../types";
+import type {
+  Schedule,
+  Activity,
+  StudentPreferences,
+  ScheduleInfo,
+} from "../../types";
 import { computeHappinessForStudent } from "../scoring/computeHappinessForStudent";
 import { scoreSchedule } from "../scoring/scoreSchedule";
 
-
-const getScheduleData = (schedule : Schedule, studentPreferences : StudentPreferences[]) : {
-    rosters : Map<string, StudentPreferences[]>,
-    assignments : Map<string, StudentPreferences>,
-}=> {
-    let rosters = new Map<string, StudentPreferences[]>();
-    let assignments = new Map<string, StudentPreferences>();
-    for (let s of schedule) {
-        let sp = studentPreferences.find((p)=>p.identifier === s.student)!
-        if (!rosters.has(s.activity)) {
-            rosters.set(s.activity, []);
-        }
-        rosters.get(s.activity)!.push(sp);
-        assignments.set(s.student, sp);
+const getScheduleData = (
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[]
+): {
+  rosters: Map<string, StudentPreferences[]>;
+  assignments: Map<string, StudentPreferences>;
+} => {
+  let rosters = new Map<string, StudentPreferences[]>();
+  let assignments = new Map<string, StudentPreferences>();
+  for (let s of schedule) {
+    let sp = studentPreferences.find((p) => p.identifier === s.student)!;
+    if (!rosters.has(s.activity)) {
+      rosters.set(s.activity, []);
     }
-    return {
-        rosters,
-        assignments
-    }
-
-}
+    rosters.get(s.activity)!.push(sp);
+    assignments.set(s.student, sp);
+  }
+  return {
+    rosters,
+    assignments,
+  };
+};
 
 const improveLeastHappyWithSwaps = (
   schedule: Schedule,
@@ -41,7 +46,11 @@ const improveLeastHappyWithSwaps = (
   }[] = [];
   data.rosters.forEach((roster, activity) => {
     for (let student of roster) {
-      const happinessData = computeHappinessForStudent(student, activity, roster);
+      const happinessData = computeHappinessForStudent(
+        student,
+        activity,
+        roster
+      );
       studentHappiness.push({
         student: student,
         ...happinessData,
@@ -88,7 +97,10 @@ const improveLeastHappyWithSwaps = (
       (a, b) => b.weight - a.weight
     )) {
       const roster = data.rosters.get(pref.activity) || [];
-      if (roster.length < (activities.find((a) => a.activity === pref.activity)?.capacity || 0)) {
+      if (
+        roster.length <
+        (activities.find((a) => a.activity === pref.activity)?.capacity || 0)
+      ) {
         continue; // Skip if not full
       }
 
@@ -121,49 +133,79 @@ const improveLeastHappyWithSwaps = (
   return { schedule, improved: false };
 };
 
-
-const mutateSchedule = (schedule: Schedule, studentPreferences: StudentPreferences[], activities: Activity[]) : Schedule => {
-   let nmutations = Math.ceil(Math.max(1, (schedule.length * (.10  + Math.random() * 0.1))));
-   let output = schedule.slice();
-   console.log('Adding ', nmutations, 'mutations');
-   for (let i=0; i<nmutations; i++) {      
-      let toMutate = Math.floor(Math.random() * schedule.length);
-      let currentAssignment = schedule[toMutate];
-      let student = studentPreferences.find((s)=>s.identifier === currentAssignment.student)!;
-      let currentActivity = currentAssignment.activity;
-      let options = student.activity.filter((a)=>a.activity !== currentActivity);
-      if (options.length === 0) {
-          continue;
-      }
-      let newActivity = options[Math.floor(Math.random() * options.length)].activity;
-      let roster = schedule.filter((a)=>a.activity === newActivity);
-      let capacity = activities.find((a)=>a.activity === newActivity)!.capacity;
-      if (roster.length < capacity) {
-          // Just add us then
-          output[toMutate] = {...currentAssignment, activity : newActivity};
-      } else {
-        // Otherwise swap us
-        let swapWith = roster[Math.floor(Math.random() * roster.length)];
-        output[toMutate] = {...currentAssignment, activity : newActivity};
-        output[output.indexOf(swapWith)] = {...swapWith, activity : currentActivity};
-      }      
-   }   
-   return schedule;
-}
-
-export const improveSchedule = (schedule, studentPreferences: StudentPreferences[], activities: Activity[], maxIterations = 10) : Schedule => {
-    let {schedule : newSchedule, improved} = improveLeastHappyWithSwaps(schedule, studentPreferences, activities);
-    let iterations = 1;
-    schedule = newSchedule;
-    while (improved && iterations < maxIterations) {                
-        ({schedule : newSchedule, improved} = improveLeastHappyWithSwaps(schedule, studentPreferences, activities));
-        if (!improved) {
-          console.log("Stuck, let's mutate");
-          newSchedule = mutateSchedule(schedule, studentPreferences, activities);
-          ({schedule: newSchedule, improved} = improveLeastHappyWithSwaps(newSchedule, studentPreferences, activities));
-        }
-        schedule = newSchedule;
-        iterations++;
+const mutateSchedule = (
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[],
+  activities: Activity[]
+): Schedule => {
+  let nmutations = Math.ceil(
+    Math.max(1, schedule.length * (0.1 + Math.random() * 0.1))
+  );
+  let output = schedule.slice();
+  console.log("Adding ", nmutations, "mutations");
+  for (let i = 0; i < nmutations; i++) {
+    let toMutate = Math.floor(Math.random() * schedule.length);
+    let currentAssignment = schedule[toMutate];
+    let student = studentPreferences.find(
+      (s) => s.identifier === currentAssignment.student
+    )!;
+    let currentActivity = currentAssignment.activity;
+    let options = student.activity.filter(
+      (a) => a.activity !== currentActivity
+    );
+    if (options.length === 0) {
+      continue;
     }
-    return schedule;
-}
+    let newActivity =
+      options[Math.floor(Math.random() * options.length)].activity;
+    let roster = schedule.filter((a) => a.activity === newActivity);
+    let capacity = activities.find((a) => a.activity === newActivity)!.capacity;
+    if (roster.length < capacity) {
+      // Just add us then
+      output[toMutate] = { ...currentAssignment, activity: newActivity };
+    } else {
+      // Otherwise swap us
+      let swapWith = roster[Math.floor(Math.random() * roster.length)];
+      output[toMutate] = { ...currentAssignment, activity: newActivity };
+      output[output.indexOf(swapWith)] = {
+        ...swapWith,
+        activity: currentActivity,
+      };
+    }
+  }
+  return schedule;
+};
+
+export const improveSchedule = (
+  schedule,
+  studentPreferences: StudentPreferences[],
+  activities: Activity[],
+  maxIterations = 10
+): Schedule => {
+  let { schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
+    schedule,
+    studentPreferences,
+    activities
+  );
+  let iterations = 1;
+  schedule = newSchedule;
+  while (improved && iterations < maxIterations) {
+    ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
+      schedule,
+      studentPreferences,
+      activities
+    ));
+    if (!improved) {
+      console.log("Stuck, let's mutate");
+      newSchedule = mutateSchedule(schedule, studentPreferences, activities);
+      ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
+        newSchedule,
+        studentPreferences,
+        activities
+      ));
+    }
+    schedule = newSchedule;
+    iterations++;
+  }
+  return schedule;
+};

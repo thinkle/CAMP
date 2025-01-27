@@ -59,7 +59,9 @@ export function repairSchedule(
     if (!pref) return false;
 
     // Sort activity preferences by descending weight
-    const sortedActivities = [...pref.activity].sort((a, b) => b.weight - a.weight);
+    const sortedActivities = [...pref.activity].sort(
+      (a, b) => b.weight - a.weight
+    );
     for (const { activity } of sortedActivities) {
       const cap = capacityMap.get(activity)!;
       if (occupantMap.get(activity)!.size < cap) {
@@ -74,7 +76,9 @@ export function repairSchedule(
     for (const p of sortedPeers) {
       const peerActivity = findActivityOfStudent(p.peer);
       if (!peerActivity) continue; // that peer isn't assigned
-      if (occupantMap.get(peerActivity)!.size < capacityMap.get(peerActivity)!) {
+      if (
+        occupantMap.get(peerActivity)!.size < capacityMap.get(peerActivity)!
+      ) {
         occupantMap.get(peerActivity)!.add(studentId);
         return true;
       }
@@ -92,16 +96,18 @@ export function repairSchedule(
     const occupantArray = [...occupantSet];
 
     // For synergy calc, we need occupantList as a StudentPreferences[] for all in occupantSet
-    const occupantPrefsList = occupantArray.map(sId => prefsMap.get(sId)!).filter(Boolean);
+    const occupantPrefsList = occupantArray
+      .map((sId) => prefsMap.get(sId)!)
+      .filter(Boolean);
 
     // 1) Compute happiness for each occupant in that activity
-    const occupantScores = occupantArray.map(studentId => {
+    const occupantScores = occupantArray.map((studentId) => {
       const studentPref = prefsMap.get(studentId)!;
       const { happiness, mutualHappiness } = computeHappinessForStudent(
         studentPref,
         activity,
         occupantPrefsList
-      );            
+      );
       return { studentId, happiness, mutualHappiness };
     });
 
@@ -134,7 +140,7 @@ export function repairSchedule(
     }
   }
 
-  // Now we might have unassigned students if they'd never appeared in schedule or 
+  // Now we might have unassigned students if they'd never appeared in schedule or
   // if they got removed but not placed
   const assignedStudents = new Set<string>();
   for (const [actName, occupantSet] of occupantMap.entries()) {
@@ -142,7 +148,9 @@ export function repairSchedule(
       assignedStudents.add(sid);
     }
   }
-  const unassigned = preferences.filter(p => !assignedStudents.has(p.identifier));
+  const unassigned = preferences.filter(
+    (p) => !assignedStudents.has(p.identifier)
+  );
 
   // Attempt to place unassigned via fallback
   for (const st of unassigned) {
