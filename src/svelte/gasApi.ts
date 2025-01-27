@@ -1,6 +1,15 @@
 
 export const GoogleAppsScript = {
   
+     areDataSheetsSetup(): Promise<GoogleAppsScript.Spreadsheet.Sheet> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: GoogleAppsScript.Spreadsheet.Sheet) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .areDataSheetsSetup();
+      });
+    },
+
      doSomething(): Promise<number> {
       return new Promise((resolve, reject) => {
         google.script.run
@@ -19,6 +28,15 @@ export const GoogleAppsScript = {
       });
     },
 
+     getUniversalPrefsSheet(): Promise<GoogleAppsScript.Spreadsheet.Sheet> {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler((result: GoogleAppsScript.Spreadsheet.Sheet) => resolve(result))
+          .withFailureHandler((error: any) => reject(error))
+          .getUniversalPrefsSheet();
+      });
+    },
+
      writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): Promise<void> {
       return new Promise((resolve, reject) => {
         google.script.run
@@ -28,21 +46,21 @@ export const GoogleAppsScript = {
       });
     },
 
-     readBuildData(): Promise<import("../types").ScheduleInfo[]> {
+     readBuildData(preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): Promise<Partial<import("../types").ScheduleInfo>[]> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: import("../types").ScheduleInfo[]) => resolve(result))
+          .withSuccessHandler((result: Partial<import("../types").ScheduleInfo>[]) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .readBuildData();
+          .readBuildData(preferenceData);
       });
     },
 
-     writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): Promise<void> {
+     writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): Promise<void> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: void) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .writeBuildData(schedules);
+          .writeBuildData(schedules, preferenceData);
       });
     },
 
