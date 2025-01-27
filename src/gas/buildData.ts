@@ -47,8 +47,8 @@ export function readRawBuildData(): {
 export function readBuildData(preferenceData : {
     studentPreferences: StudentPreferences[];
     activities: Activity[];
-}): ScheduleInfo[] {  
-  let schedules: ScheduleInfo[] = [];
+}): Partial<ScheduleInfo>[] {  
+  let schedules: Partial<ScheduleInfo>[] = [];
   let targetHash = computeHash(preferenceData);   
   console.log('Looking for hash', targetHash);  
   let nonMatchingHashes = new Set();
@@ -57,8 +57,8 @@ export function readBuildData(preferenceData : {
         nonMatchingHashes.add(hash);
         continue;
     }
-    let schedule = idToSchedule(id, preferenceData.studentPreferences, preferenceData.activities);
-    schedules.push({ id, score, alg, generation, invalid: "", schedule });
+    // Partial schedule information, not including full schedule details    
+    schedules.push({ id, score, alg, generation, invalid: "" });
   }
   console.log('Found ', schedules.length, 'schedules');
   console.log('Non-matching hashes', Array.from(nonMatchingHashes));
@@ -66,36 +66,93 @@ export function readBuildData(preferenceData : {
 }
 
 function computeHash(preferenceData: {
-  studentPreferences: StudentPreferences[];
-  activities: Activity[];
-}) {
-    
-  preferenceData.studentPreferences.sort((a, b) =>
-    a.identifier.localeCompare(b.identifier)
-  );
-  preferenceData.activities.sort((a, b) =>
-    a.activity.localeCompare(b.activity)
-  );
-  preferenceData.studentPreferences.forEach(
-    (s) => {
-        s.activity.sort((a, b) => a.activity.localeCompare(b.activity));
-        s.peer.sort((a, b) => a.peer.localeCompare(b.peer));
-    }
-  )
-  console.log('Hashing', preferenceData);
-  let s = JSON.stringify(preferenceData);
-  let digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s);
-  // Convert each byte to a two-digit hex string
-  const hexDigest = digest
-    .map((byte) => {
-      // Because GAS might return negatives, convert properly
-      const val = (byte + 256) % 256;
-      return val.toString(16).padStart(2, "0");
-    })
-    .join("");
-  // hexDigest is now a standard 64-char SHA-256 string
-  return hexDigest;
-}
+    studentPreferences: StudentPreferences[];
+    activities: Activity[];
+  }) {
+    // 1) Make local copies to avoid mutating the original data
+    const studentPrefs = [...preferenceData.studentPreferences];
+    const activities = [...preferenceData.activities];
+  
+    // 2) Sort students and activities
+    studentPrefs.sort((a, b) => a.identifier.localeCompare(b.identifier));
+    activities.sort((a, b) => a.activity.localeCompare(b.activity));
+  
+    // 3) Build index maps for easy reference
+    const studentIndexMap = new Map<string, number>();
+    studentPrefs.forEach((s, i) => {
+      studentIndexMap.set(s.identifier, i);
+    });
+  
+    const activityIndexMap = new Map<string, number>();
+    activities.forEach((act, i) => {
+      activityIndexMap.set(act.activity, i);
+    });
+  
+    // 4) For each student, sort their peer and activity arrays
+    //    and convert them to numeric form [index, weight, index, weight...].
+    const canonicalData = studentPrefs.map((s) => {
+      // Sort peer array
+      const sortedPeers = [...s.peer].sort((p1, p2) =>
+        p1.peer.localeCompare(p2.peer)
+      );
+      const peerArray = sortedPeers.flatMap((p) => {
+        // Convert each peer to [peerIndex, weight]
+        const peerIndex = studentIndexMap.get(p.peer) ?? -1;
+        return [peerIndex, p.weight];
+      });
+  
+      // Sort activity array
+      const sortedActivities = [...s.activity].sort((a1, a2) =>
+        a1.activity.localeCompare(a2.activity)
+      );
+      const activityArray = sortedActivities.flatMap((a) => {
+        // Convert each activity to [activityIndex, weight]
+        const actIndex = activityIndexMap.get(a.activity) ?? -1;
+        return [actIndex, a.weight];
+      });
+  
+      // Return a small object capturing the student's numeric data
+      return {
+        studentIndex: studentIndexMap.get(s.identifier) ?? -1,
+        peers: peerArray,
+        activities: activityArray,
+      };
+    });
+  
+    // 5) Build a final structure that includes the sorted list of activities + capacities, too
+    //    (if you want them in the hash)
+    const activityCaps = activities.map((act) => ({
+      activityIndex: activityIndexMap.get(act.activity) ?? -1,
+      capacity: act.capacity,
+    }));
+  
+    // 6) Combine everything into a single top-level object or array.
+    //    This is the data we’ll serialize and hash.
+    const finalStructure = {
+      students: canonicalData,   // numeric representation
+      activities: activityCaps,  // numeric representation
+    };
+  
+    // 7) Convert to JSON. Because we've sorted all arrays and used numeric indexes,
+    //    this JSON should be fully stable for identical data.
+    const jsonString = JSON.stringify(finalStructure);
+  
+    // 8) Compute SHA-256 with Google Apps Script
+    const digest = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      jsonString
+    );
+    const hexDigest = digest
+      .map((byte) => {
+        // Handle negatives by normalizing into [0..255]
+        const val = (byte + 256) % 256;
+        return val.toString(16).padStart(2, "0");
+      })
+      .join("");
+  
+    // 9) Return the stable hex digest
+    return hexDigest;
+  }
 
 export function writeBuildData(
   schedules: ScheduleInfo[],
