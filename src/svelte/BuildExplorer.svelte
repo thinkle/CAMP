@@ -165,7 +165,7 @@ function toggleSchedule(id) {
 </Bar>
 {/if}
 {/if}
-<Bar>
+<Bar --select-width="120px">
     <Select bind:value={sortMode}>
         <option value="best">Best Schedules</option>
         <option value="random">Random</option>
