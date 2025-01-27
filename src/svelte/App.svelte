@@ -17,35 +17,62 @@ import {
 import {
     Button,
     Container,
-    Accordion
+    Accordion,
+
+    Progress,
+
+    TextLayout
+
+
 } from "contain-css-svelte";
 import "contain-css-svelte/vars/defaults.css"
 import "contain-css-svelte/vars/themes/light.css"
 import "contain-css-svelte/vars/themes/typography-airy.css"
+  import { onMount } from 'svelte';
 
 let data: {
     studentPreferences: StudentPreferences[],
     activities: Activity[],
 };
 
+
+
 const readData = async () => {
+  loadingFromSheets = true;
     data = await GoogleAppsScript.readData();
     let ogLength = data.studentPreferences.length;
     data.studentPreferences = data.studentPreferences.filter(sp => sp.activity.length > 0);
     console.log('Filtered out', ogLength - data.studentPreferences.length, 'students with no activities');
+    loadingFromSheets = false;
 }
+let loadingFromSheets = false;
+let sheetsReady = false;
+onMount(
+    async () => {
+        sheetsReady = await GoogleAppsScript.areDataSheetsSetup();
+    }
+);
+
 </script>
 
-<Container --container-max-width="320px" height="100vh" --font-size="14px" --gap="2px" --padding="4px 2px" --border-radius="0">
+<Container --container-max-width="283px" height="calc(100vh - 8px)"  --font-size="14px" --gap="2px" --padding="4px 2px" --border-radius="0">
+  
     <h1>CAMP</h1>
-
     <h2>The Companion & Activity Matching Planner</h2>
+
     <Accordion>
-        <details>
-            <summary>Set-Up</summary>
+        <details open={!sheetsReady}>
+            <summary>Set-Up Sheets</summary>
             <SetupSheets></SetupSheets>
-            <Button on:click={readData} >Load Preferences</Button>
+        </details>
+        <details open={sheetsReady}>
+            <summary>Load from Sheets</summary>
+            <Button disabled={loadingFromSheets} on:click={readData} primary>Load Preferences</Button>
+            {#if loadingFromSheets}
+                <Progress state="inprogress">Loading data from Google Sheets</Progress>
+            {/if}
             <DataPreview {data}></DataPreview>
+            
         </details>
         <details>
             <summary>Build Schedule</summary>
@@ -71,4 +98,11 @@ const readData = async () => {
 </Container>
 
 <style>
+  h2 {
+    font-size: 1rem !important;
+    font-variant: small-caps !important;
+  }
+  h1 {
+    text-align: center !important;
+  }
 </style>
