@@ -51,36 +51,42 @@
 <Checkbox bind:checked={inSetupMode}>Setup Sheets</Checkbox>
 {#if inSetupMode}
   <h2>Setup Sheet</h2>
-  <FormItem>
-    <span slot="label"># Peers</span>
-    <input type="number" min="1" max="10" bind:value={npeers} />
-  </FormItem>
-  <FormItem>
-    <span slot="label"># Activities</span>
-    <input type="number" min="1" max="10" bind:value={nactivities} />
-  </FormItem>
-  <FormItem>
-    <Button disabled={state == "running"} primary on:click={addMockData}
-      >Populate with Mock Data
-    </Button>
-  </FormItem>
+  <div style="display:flex; flex-direction: row; align-items: center">
+    <FormItem>
+      <span slot="label"># Peers</span>
+      <input type="number" min="1" max="10" bind:value={npeers} />
+    </FormItem>
+    <FormItem>
+      <span slot="label"># Activities</span>
+      <input type="number" min="1" max="10" bind:value={nactivities} />
+    </FormItem>
+  </div>
   <FormItem>
     <Button disabled={state == "running"} primary on:click={doActivities}>
       Setup Activities Sheet!
     </Button>
   </FormItem>
+  <p>For the list of activities & their max roster sizes (capacity).</p>
   <FormItem>
     <Button disabled={state == "running"} primary on:click={doPrefs}
       >Setup Preferences Sheet!</Button
     >
   </FormItem>
+  <p>For the list of students & their peer & activity preferences.</p>
   <FormItem>
     <Button disabled={state == "running"} primary on:click={doUniversalPrefs}
-      >Set Up Universal Prefs Sheet</Button>
-      <p>For default values for all students who don't specify an activity -- let's you say that
-        certain activities should be preferred or not preferred for students who don't sign up for
-        them.
-      </p>
+      >Set Up Universal Prefs Sheet</Button
+    >
+    <p>
+      For default values for all students who don't specify an activity -- let's
+      you say that certain activities should be preferred or not preferred for
+      students who don't sign up for them.
+    </p>
+  </FormItem>
+  <FormItem>
+    <Button disabled={state == "running"} on:click={addMockData}
+      >Populate with Mock Data
+    </Button>
   </FormItem>
 
   {#if state == "running"}

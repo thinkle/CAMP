@@ -98,7 +98,8 @@
 
 <style>
   h2 {
-    font-size: 1rem !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
     font-variant: small-caps !important;
   }
   h1 {
