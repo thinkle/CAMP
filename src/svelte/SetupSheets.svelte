@@ -1,88 +1,97 @@
 <script lang="ts">
-import {
-    GoogleAppsScript
-} from "./gasApi";
+  import { GoogleAppsScript } from "./gasApi";
 
-import {
-    Button,
-    Checkbox,
-    FormItem
-} from "contain-css-svelte";
+  import { Button, Checkbox, FormItem } from "contain-css-svelte";
 
-let inSetupMode = false;
-let npeers = 4;
-let nactivities = 4;
-let state: "idle" | "running" | "done" = "idle";
-let error = "";
-const doPrefs = async () => {
+  let inSetupMode = false;
+  let npeers = 4;
+  let nactivities = 4;
+  let state: "idle" | "running" | "done" = "idle";
+  let error = "";
+  const doPrefs = async () => {
     state = "running";
     try {
-        await GoogleAppsScript.setupPreferencesSheet(nactivities, npeers);
+      await GoogleAppsScript.setupPreferencesSheet(nactivities, npeers);
     } catch (e) {
-        error = e;
+      error = e;
     }
     state = "done";
-};
-
-const doActivities = async () => {
+  };
+  const doUniversalPrefs = async () => {
     state = "running";
     try {
-        await GoogleAppsScript.setupActivitiesSheet();
+      await GoogleAppsScript.getUniversalPrefsSheet();
     } catch (e) {
-        error = e;
+      error = e;
     }
     state = "done";
-};
+  };
 
-const addMockData = async () => {
+  const doActivities = async () => {
     state = "running";
     try {
-        await GoogleAppsScript.addMockData(nactivities, npeers, 400, 30);
+      await GoogleAppsScript.setupActivitiesSheet();
     } catch (e) {
-        error = e;
+      error = e;
     }
     state = "done";
-};
+  };
+
+  const addMockData = async () => {
+    state = "running";
+    try {
+      await GoogleAppsScript.addMockData(nactivities, npeers, 400, 30);
+    } catch (e) {
+      error = e;
+    }
+    state = "done";
+  };
 </script>
 
 <Checkbox bind:checked={inSetupMode}>Setup Sheets</Checkbox>
 {#if inSetupMode}
-
-<h2>Setup Sheet</h2>
-<FormItem>
+  <h2>Setup Sheet</h2>
+  <FormItem>
     <span slot="label"># Peers</span>
     <input type="number" min="1" max="10" bind:value={npeers} />
-</FormItem>
-<FormItem>
+  </FormItem>
+  <FormItem>
     <span slot="label"># Activities</span>
     <input type="number" min="1" max="10" bind:value={nactivities} />
-</FormItem>
-<FormItem>
+  </FormItem>
+  <FormItem>
     <Button disabled={state == "running"} primary on:click={addMockData}
-        >Populate with Mock Data</Button
-        >
-        </FormItem>
-        <FormItem>
-            <Button disabled={state == "running"} primary on:click={doActivities}
-                >Setup Activities Sheet!</Button
-                >
-                </FormItem>
-                <FormItem>
-                    <Button disabled={state == "running"} primary on:click={doPrefs}
-                        >Setup Preferences Sheet!</Button
-                        >
-                        </FormItem>
+      >Populate with Mock Data
+    </Button>
+  </FormItem>
+  <FormItem>
+    <Button disabled={state == "running"} primary on:click={doActivities}>
+      Setup Activities Sheet!
+    </Button>
+  </FormItem>
+  <FormItem>
+    <Button disabled={state == "running"} primary on:click={doPrefs}
+      >Setup Preferences Sheet!</Button
+    >
+  </FormItem>
+  <FormItem>
+    <Button disabled={state == "running"} primary on:click={doUniversalPrefs}
+      >Set Up Universal Prefs Sheet</Button>
+      <p>For default values for all students who don't specify an activity -- let's you say that
+        certain activities should be preferred or not preferred for students who don't sign up for
+        them.
+      </p>
+  </FormItem>
 
-                        {#if state == "running"}
-                        <p>One sec...</p>
-                        {:else if error}
-                        <p>Oops!</p>
-                        {JSON.stringify(error)}
-                        {:else if state == "done"}
-                        <p>Done!</p>
-                        {/if}
-
-                        {/if}
+  {#if state == "running"}
+    <p>One sec...</p>
+  {:else if error}
+    <p>Oops!</p>
+    {JSON.stringify(error)}
+  {:else if state == "done"}
+    <p>Done!</p>
+  {/if}
+{/if}
 
 <style>
 </style>

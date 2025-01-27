@@ -72,3 +72,15 @@ export function getWorkerScript(): string {
 export function writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): void {
   
 }
+
+export function areDataSheetsSetup(): GoogleAppsScript.Spreadsheet.Sheet {
+  return true;
+}
+
+export function setupUniversalPrefsSheet(): GoogleAppsScript.Spreadsheet.Sheet {
+  return null; // TODO: Replace with mock return value of type GoogleAppsScript.Spreadsheet.Sheet
+}
+
+export function getUniversalPrefsSheet(): GoogleAppsScript.Spreadsheet.Sheet {
+  return null; // TODO: Replace with mock return value of type GoogleAppsScript.Spreadsheet.Sheet
+}

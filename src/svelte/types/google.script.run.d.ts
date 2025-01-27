@@ -4,11 +4,13 @@ declare namespace google.script {
       withFailureHandler(callback: (error: Error, object?: any) => void): this;
       withSuccessHandler(callback: (value: any, object?: any) => void): this;
       withUserObject(object: Object): this;
-      doSomething(): void;
+      areDataSheetsSetup(): void;
+  doSomething(): void;
   getWorkerScript(): void;
+  getUniversalPrefsSheet(): void;
   writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): void;
-  readBuildData(): void;
-  writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]): void;
+  readBuildData(preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
+  writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
   clearBuildData(): void;
   readData(): void;
   addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): void;

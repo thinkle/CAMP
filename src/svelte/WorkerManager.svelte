@@ -36,6 +36,9 @@ import {
 import {
     WorkerPool
 } from './lib/workerPool';
+import {
+    idToSchedule
+} from '../scheduler';
 
 let generatorAlgs: string[] | undefined;
 
@@ -142,33 +145,37 @@ const initializeWorker = async () => {
 
 // Stop the worker process
 const stopWorker = (id) => {
-    if (worker) {
-        worker.postMessage({
-            type: "stop",
-            id
-        });
-        running = false;
-    }
+    worker.postMessage({
+        type: "stop",
+        id
+    });
+    running = false;
+
 };
 
 // Generate schedules
-const generateSchedules = () => {
-    if (worker) {
-        worker.postMessage({
-            type: "generate",
-            payload: {
-                prefs: data.studentPreferences,
-                activities: data.activities,
-                rounds: rounds,
-                algs: generatorAlgs,
-            },
-        });
-        workerMessage = "Generating schedules...";
-        running = true;
+const generateSchedules = async () => {
+    if (!worker) {
+        await initializeWorker();
     }
+    worker.postMessage({
+        type: "generate",
+        payload: {
+            prefs: data.studentPreferences,
+            activities: data.activities,
+            rounds: rounds,
+            algs: generatorAlgs,
+        },
+    });
+    workerMessage = "Generating schedules...";
+    running = true;
+
 };
 
-const improveSchedule = (schedule) => {
+const improveSchedule = async (schedule) => {
+    if (!worker) {
+        await initializeWorker();
+    }
     worker.postMessage({
         type: "improve",
         payload: {
@@ -184,7 +191,7 @@ const improveSchedule = (schedule) => {
 
 // Improve a schedule
 const improveBestSchedule = () => {
-    if (worker && schedules.length > 0) {
+    if (schedules.length > 0) {
         const bestSchedule = schedules.reduce((a, b) =>
             a.score > b.score ? a : b
         );
@@ -192,13 +199,13 @@ const improveBestSchedule = () => {
     }
 };
 const improveRandomSchedule = () => {
-    if (worker && schedules.length > 0) {
+    if (schedules.length > 0) {
         const randomSchedule = schedules[Math.floor(Math.random() * schedules.length)];
         improveSchedule(randomSchedule);
     }
 };
 const improveMostRecentSchedule = () => {
-    if (worker && schedules.length > 0) {
+    if (schedules.length > 0) {
         const mostRecentSchedule = schedules[schedules.length - 1];
         improveSchedule(mostRecentSchedule);
     }
@@ -217,7 +224,7 @@ let rounds = 10;
 
 // Evolve schedules
 const evolveSchedules = () => {
-    if (worker && schedules.length > 2) {
+    if (schedules.length > 2) {
         let sortedSchedules = [...schedules].sort(
             (a, b) => b.score - a.score
         );
@@ -252,7 +259,7 @@ const evolveSchedules = () => {
 };
 
 function evolveScheduleGroup(group: ScheduleInfo[]) {
-    if (worker && group.length > 2) {
+    if (group.length > 2) {
 
         worker.postMessage({
             type: "evolve",
@@ -270,7 +277,9 @@ function evolveScheduleGroup(group: ScheduleInfo[]) {
 
 // Cleanup the worker on component unmount
 onMount(() => {
+    console.log('Initializing worker...');
     initializeWorker();
+
     return () => {
         if (worker) {
             worker.terminate();
@@ -291,7 +300,7 @@ let recentDiff: Similarity = {
     assignmentSimilarity: 0,
     cohortSimilarity: 0
 };
-$: recentDiff = mostRecentSchedule && bestSchedule && compareSchedules(mostRecentSchedule ? .schedule, bestSchedule ? .schedule);
+$: recentDiff = mostRecentSchedule && bestSchedule && compareSchedules(mostRecentSchedule.schedule, bestSchedule.schedule);
 let tab: 'save' | 'load' | 'build' | 'explore' = 'load';
 let scheduleInfoTab = 'recent';
 </script>
@@ -305,13 +314,20 @@ let scheduleInfoTab = 'recent';
     </TabBar>
     {#if tab == 'load'}
     <Button on:click={()=>{
-        GoogleAppsScript.readBuildData().then((data)=>{
-        schedules = data;
+        GoogleAppsScript.readBuildData(
+        data
+        ).then((scheduleInfo)=>{
+        for (let s of scheduleInfo) {
+        if (!s.schedule) {
+        s.schedule = idToSchedule(s.id, data.studentPreferences, data.activities);
+        }
+        }
+        schedules = scheduleInfo;
         });
         }}>Load Build Data</Button>
     {:else if tab == 'save'}
     <Button on:click={()=>{
-        GoogleAppsScript.writeBuildData(schedules);
+        GoogleAppsScript.writeBuildData(schedules, data);
         }}>Save Build Data</Button>
     {:else if tab == 'build'}
     <div class="progress">
