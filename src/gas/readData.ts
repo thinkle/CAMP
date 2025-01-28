@@ -138,6 +138,13 @@ export function readData(keepEmpty = false): {
     );
   }
 
+  // Now since we may have removed students, we may have preferences for non-existent peers.
+  // Let's remove them...
+  const validIdentifiers = new Set(studentPreferences.map((s) => s.identifier));
+  for (let student of studentPreferences) {
+    student.peer = student.peer.filter((p) => validIdentifiers.has(p.peer));
+  }
+
   const universalPreferences = getUniversalPrefsData();
   // Add universal preferences to each student
   for (let student of studentPreferences) {
