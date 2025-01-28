@@ -16,6 +16,7 @@
     TabItem,
     Progress,
     FormItem,
+    MiniButton,
   } from "contain-css-svelte";
 
   import type {
@@ -301,7 +302,6 @@
 
   function crossbreedSmallClusters(numClusters = 5) {
     if (clusters.length < 2) return;
-    debugger;
     // Identify clusters with small size (<= 3 schedules)
     let smallClusters = clusters.filter((c) => c.set.size <= 3);
 
@@ -484,66 +484,24 @@
   }
 
   let clusteringThreshold = 0.9;
-  let batchSize = 50; // How many schedules to accumulate before sending
-  let pendingSchedules: Schedule[] = [];
-  let batchTimer: ReturnType<typeof setTimeout> | null = null; // Timer for final batch flush
-
   function sendClusterBatch() {
-    if (!pendingSchedules.length) return; // Nothing to send
-
-    console.log(`Sending ${pendingSchedules.length} schedules for clustering`);
-
-    clustering = true;
-    lastSizeWeClusteredAt = schedules.length;
+    let pendingSchedules = schedules.filter(
+      (s) => !scheduleMap.has(JSON.stringify(s.schedule))
+    );
 
     worker.postMessage({
       type: "cluster",
       payload: {
-        schedules: pendingSchedules, // ✅ Send all accumulated schedules
+        schedules: pendingSchedules.map((s) => s.schedule), // ✅ Send all accumulated schedules
         prefs: data.studentPreferences,
         activities: data.activities,
         threshold: clusteringThreshold,
         clusters: clusterMap,
       },
     });
-
-    // ✅ Clear the pending schedules array AFTER sending
-    pendingSchedules = [];
-
-    // ✅ Clear batch timer after sending
-    if (batchTimer) {
-      clearTimeout(batchTimer);
-      batchTimer = null;
-    }
   }
 
-  function scheduleBatchFlush() {
-    if (batchTimer) clearTimeout(batchTimer); // Reset timer
-    batchTimer = setTimeout(() => {
-      if (pendingSchedules.length) sendClusterBatch(); // Send remaining schedules
-    }, 2500); // Adjust delay for responsiveness
-  }
-
-  // 🚀 Batching with Immediate Send when Reaching `batchSize`
-  function queueForClustering(newSchedules: Schedule[]) {
-    pendingSchedules.push(...newSchedules);
-
-    if (pendingSchedules.length >= batchSize) {
-      sendClusterBatch(); // ✅ Immediate send when batch is ready
-    } else {
-      scheduleBatchFlush(); // ✅ Wait before sending if batch isn't full
-    }
-  }
-
-  $: if (schedules.length > lastSizeWeClusteredAt && !clustering) {
-    let newSchedules = schedules
-      .map((s) => s.schedule)
-      .filter((s) => !clusterMap.has(s)); // Only unclustered schedules
-
-    if (newSchedules.length) {
-      queueForClustering(newSchedules);
-    }
-  }
+  let saveBuildBusy;
 </script>
 
 {#if data}
@@ -561,10 +519,17 @@
       <TabItem active={tab == "explore"} on:click={() => (tab = "explore")}
         >Explore</TabItem
       >
+      <MiniButton
+        on:click={() => {
+          clustering = true;
+          sendClusterBatch();
+        }}>⟳</MiniButton
+      >
     </TabBar>
     {#if tab == "load"}
       <Button
         on:click={() => {
+          saveBuildBusy = "Reading build data...";
           GoogleAppsScript.readBuildData(data).then((scheduleInfo) => {
             for (let s of scheduleInfo) {
               if (!s.schedule) {
@@ -576,15 +541,28 @@
               }
             }
             schedules = scheduleInfo;
+            saveBuildBusy = "";
           });
         }}>Load Build Data</Button
       >
+      {#if saveBuildBusy}
+        <Progress state="inprogress" indeterminate={true}>
+          {saveBuildBusy}
+        </Progress>
+      {/if}
     {:else if tab == "save"}
       <Button
-        on:click={() => {
-          GoogleAppsScript.writeBuildData(schedules, data);
+        on:click={async () => {
+          saveBuildBusy = "Saving build data...";
+          await GoogleAppsScript.writeBuildData(schedules, data);
+          saveBuildBusy = "";
         }}>Save Build Data</Button
       >
+      {#if saveBuildBusy}
+        <Progress state="inprogress" indeterminate={true}>
+          {saveBuildBusy}
+        </Progress>
+      {/if}
     {:else if tab == "build"}
       <div class="progress">
         {#each workerIds as id}
@@ -706,9 +684,10 @@
     {:else if tab == "explore"}
       <BuildExplorer
         {data}
-        schedules={clusters.map((c) => c.bestSchedule)}
+        {schedules}
         {bestSchedule}
         {clusterMap}
+        {clusters}
         onEvolve={evolveScheduleGroup}
         onImprove={improveSchedule}
         onWrite={(schedInfo) =>
