@@ -15,6 +15,7 @@
     Accordion,
     Progress,
     TextLayout,
+    Checkbox,
   } from "contain-css-svelte";
   import "contain-css-svelte/vars/defaults.css";
   import "contain-css-svelte/vars/themes/light.css";
@@ -28,7 +29,7 @@
 
   const readData = async () => {
     loadingFromSheets = true;
-    data = await GoogleAppsScript.readData();
+    data = await GoogleAppsScript.readData(keepEmpty);
     let ogLength = data.studentPreferences.length;
     data.studentPreferences = data.studentPreferences.filter(
       (sp) => sp.activity.length > 0
@@ -42,6 +43,7 @@
   };
   let loadingFromSheets = false;
   let sheetsReady = false;
+  let keepEmpty = false;
   onMount(async () => {
     sheetsReady = await GoogleAppsScript.areDataSheetsSetup();
   });
@@ -65,6 +67,8 @@
     </details>
     <details open={sheetsReady}>
       <summary>Load from Sheets</summary>
+      <Checkbox checked={keepEmpty}>Include students w/ no preferences</Checkbox
+      >
       <Button disabled={loadingFromSheets} on:click={readData} primary
         >Load Preferences</Button
       >

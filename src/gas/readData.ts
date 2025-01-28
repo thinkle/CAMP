@@ -22,7 +22,7 @@ import {
  *
  * @returns {{ activities: Activity[], studentPreferences: StudentPreferences[] }}
  */
-export function readData(): {
+export function readData(keepEmpty = false): {
   activities: Activity[];
   studentPreferences: StudentPreferences[];
 } {
@@ -57,7 +57,7 @@ export function readData(): {
   // We’ll use the first row as column headers
   const headers = prefValues[0];
 
-  const studentPreferences: StudentPreferences[] = [];
+  let studentPreferences: StudentPreferences[] = [];
 
   // Start reading from row 2 (index = 1)
   for (let row = 1; row < prefValues.length; row++) {
@@ -104,11 +104,12 @@ export function readData(): {
       // Distinguish between an "Activity" vs. "Peer" based on header or naming convention
       if (
         typeof nameHeader === "string" &&
-        nameHeader.toLowerCase().includes("peer")
+        nameHeader.toLowerCase().includes("peer") &&
+        preferenceName
       ) {
         // It's a peer preference
         peerPrefs.push({ peer: String(preferenceName), weight });
-      } else {
+      } else if (preferenceName) {
         // Otherwise, treat it as an activity preference
         activityPrefs.push({ activity: String(preferenceName), weight });
       }
@@ -119,7 +120,7 @@ export function readData(): {
     if (override) {
       studentPreferences.push({
         identifier: String(identifier),
-        activity: [{ activity: override, weight: 100 }],
+        activity: [{ activity: override, weight: 1000 }],
         peer: peerPrefs,
       });
     } else {
@@ -129,6 +130,12 @@ export function readData(): {
         peer: peerPrefs,
       });
     }
+  }
+
+  if (!keepEmpty) {
+    studentPreferences = studentPreferences.filter(
+      (student) => student.activity.length > 0 || student.peer.length > 0
+    );
   }
 
   const universalPreferences = getUniversalPrefsData();
