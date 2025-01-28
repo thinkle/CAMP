@@ -49,10 +49,17 @@
     avgScore: Number;
     bestScore: Number;
     bestSchedule: ScheduleInfo;
+    name: string;
   };
 
   export let clusters: ClusterInfo[] = [];
+  let theClusterName: string;
   let theCluster: ClusterInfo;
+  $: {
+    if (theClusterName) {
+      theCluster = clusters.find((c) => c.name === theClusterName);
+    }
+  }
 
   let sortMode: "best" | "distant" | "random" | "random-top" | "cluster" =
     "best";
@@ -93,6 +100,10 @@
       sortedSchedules = shuffle([...schedules]);
     } else if (sortMode == "best") {
       sortedSchedules = [...schedules].sort(sortByScore);
+    } else if (sortMode == "cluster") {
+      if (theCluster && theCluster.infoSet) {
+        sortedSchedules = [...theCluster.infoSet].sort(sortByScore);
+      }
     }
   }
 
@@ -218,22 +229,20 @@
       >
       <MiniButton on:click={() => (page = pages)}>&gt;&gt;</MiniButton>
     </div>
-    {#if sortMode == "cluster"}
-      <!-- Add cluster chooser with maybe some metadata as our selectors, 
-       like - letter, # scheds, top score
-          [A (7 scheds) - 8748], 
-          [B (9 scheds) - 8909]
-       
-       top -->
-      <select bind:value={theCluster}>
+  </Bar>
+  {#if sortMode == "cluster"}
+    <Bar>
+      <Select bind:value={theClusterName}>
         {#each clusters as cluster, i}
-          <option value={cluster}>
-            {i + 1}. {cluster.infoSet.size} sched (+{cluster.bestScore})
+          <option value={cluster.name}>
+            {cluster.name.substring(0, 2)}
+            {cluster.infoSet.size}
+            +{cluster.bestScore}
           </option>
         {/each}
-      </select>
-    {/if}
-  </Bar>
+      </Select>
+    </Bar>
+  {/if}
   <Table>
     <tr>
       <th />
@@ -275,6 +284,24 @@
     {/each}
   </Table>
 {:else}
+  <Bar>
+    <Button
+      on:click={() => {
+        clusters.sort((a, b) => b.infoSet.size - a.infoSet.size);
+        clusters = clusters;
+      }}
+    >
+      Sort by Size
+    </Button>
+    <Button
+      on:click={() => {
+        clusters.sort((a, b) => b.bestScore - a.bestScore);
+        clusters = clusters;
+      }}
+    >
+      Sort by Score
+    </Button>
+  </Bar>
   <Table>
     <tr>
       <th>Cluster</th>
@@ -284,7 +311,7 @@
     </tr>
     {#each clusters as cluster, i}
       <tr>
-        <td>{i + 1}</td>
+        <td>{cluster.name}</td>
         <td>{cluster.infoSet.size}</td>
         <td>{cluster.bestScore}</td>
         <td>

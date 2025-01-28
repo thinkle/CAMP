@@ -412,10 +412,12 @@
     avgScore: Number;
     bestScore: Number;
     bestSchedule: ScheduleInfo;
+    name: string;
   }[] = [];
   // 🌍 Persistent Cache: Schedule lookup map
   let scheduleMap = new Map<string, ScheduleInfo>();
-
+  import { Namer } from "./lib/uniqueNamer";
+  let namer = Namer();
   function buildClusters() {
     if (!clusterMap) return;
 
@@ -427,6 +429,7 @@
       let avgScore = 0;
       let bestScore = -Infinity;
       let bestSchedule: ScheduleInfo | null = null;
+      let name = namer.getName(reference);
 
       for (let s of set) {
         let key = JSON.stringify(s);
@@ -463,6 +466,7 @@
           avgScore,
           bestScore,
           bestSchedule,
+          name,
         });
       }
     }
