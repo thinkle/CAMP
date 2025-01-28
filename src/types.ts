@@ -1,3 +1,5 @@
+import { FamilyClusters } from "./scheduler/hillclimbing/clusterSchedules";
+
 export type ActivityPreference = {
   activity: string;
   weight: number;
@@ -40,7 +42,9 @@ export type WorkerMessage = {
     | "stopped"
     | "generated"
     | "evolved"
-    | "started";
+    | "started"
+    | "clustered";
+  map?: FamilyClusters;
   message: string;
   schedule?: ScheduleInfo;
   population?: ScheduleInfo[];

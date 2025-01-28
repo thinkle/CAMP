@@ -25,6 +25,7 @@
     ScheduleInfo,
     WorkerMessage,
   } from "./../types.ts";
+  import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
 
   export let data: {
     studentPreferences: StudentPreferences[];
@@ -39,6 +40,7 @@
   export let onEvolve: (scheduleSet) => void;
   export let onImprove: (schedule) => void;
   export let onWrite: (schedule) => void;
+  export let clusterMap: FamilyClusters;
 
   let sortMode: "best" | "distant" | "random" | "random-top" = "best";
   let sortedSchedules = [...schedules];

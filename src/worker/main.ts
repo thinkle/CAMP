@@ -3,6 +3,8 @@ import { createCrosses } from "../scheduler/hillclimbing/evolveSchedules";
 import { generate } from "../scheduler/hillclimbing/generator";
 import { mergeSchedules } from "../scheduler/hillclimbing/mergeSchedules";
 import { createScheduleInfo } from "../scheduler/hillclimbing/scheduleInfo";
+import { mapFamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
+
 import type {
   Schedule,
   Activity,
@@ -223,6 +225,32 @@ self.onmessage = (e) => {
           payload.activities,
           payload.rounds
         );
+        break;
+
+      case "cluster":
+        // Cluster schedules
+        console.log(
+          "Mapping clusters...",
+          payload.threshold,
+          payload.schedules,
+          payload.clusters
+        );
+        postMessage({
+          type: "started",
+          message: "Started clustering schedules",
+        });
+        let map = mapFamilyClusters(
+          payload.threshold,
+          payload.schedules,
+          payload.clusters
+        );
+        console.log("Done mapping", map);
+        postMessage({
+          type: "clustered",
+          map,
+          complete: true,
+          message: "Done clustering schedules",
+        });
         break;
 
       case "stop":

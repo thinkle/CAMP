@@ -139,7 +139,7 @@ const mutateSchedule = (
   activities: Activity[]
 ): Schedule => {
   let nmutations = Math.ceil(
-    Math.max(1, schedule.length * (0.1 + Math.random() * 0.1))
+    Math.max(1, schedule.length * (0.05 + Math.random() * 0.1))
   );
   let output = schedule.slice();
   console.log("Adding ", nmutations, "mutations");

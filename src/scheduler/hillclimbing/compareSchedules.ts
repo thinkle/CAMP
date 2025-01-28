@@ -14,10 +14,13 @@ export type SimilarityError = {
 
 export const compareSchedules = (
   schedule1: Schedule,
-  schedule2: Schedule
+  schedule2: Schedule,
+  sorted = false
 ): Similarity | SimilarityError => {
-  schedule1.sort((a, b) => a.student.localeCompare(b.student));
-  schedule2.sort((a, b) => a.student.localeCompare(b.student));
+  if (!sorted) {
+    schedule1.sort((a, b) => a.student.localeCompare(b.student));
+    schedule2.sort((a, b) => a.student.localeCompare(b.student));
+  }
   try {
     let assignmentSimilarity = getAssignmentSimilarity(schedule1, schedule2);
     let cohortSimilarity = getCohortSimilarity(schedule1, schedule2);
