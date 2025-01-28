@@ -6,6 +6,7 @@ import type {
 } from "../../types";
 import { computeHappinessForStudent } from "../scoring/computeHappinessForStudent";
 import { scoreSchedule } from "../scoring/scoreSchedule";
+import { getCohorts } from "../heuristics/assignByCohorts";
 
 const getScheduleData = (
   schedule: Schedule,
@@ -142,7 +143,6 @@ const mutateSchedule = (
     Math.max(1, schedule.length * (0.05 + Math.random() * 0.1))
   );
   let output = schedule.slice();
-  console.log("Adding ", nmutations, "mutations");
   for (let i = 0; i < nmutations; i++) {
     let toMutate = Math.floor(Math.random() * schedule.length);
     let currentAssignment = schedule[toMutate];
@@ -176,8 +176,74 @@ const mutateSchedule = (
   return schedule;
 };
 
+const improveByMovingCohorts = (
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[],
+  activities: Activity[]
+): { schedule: Schedule; improved: boolean } => {
+  // Step 1: Identify students who are not in their top choice but could move as a cohort
+  const studentsNeedingMoves = studentPreferences.filter((student) => {
+    const currentAssignment = schedule.find(
+      (s) => s.student === student.identifier
+    );
+    const topChoice = student.activity[0].activity; // Top choice activity
+    const currentActivity = currentAssignment?.activity;
+    const availableSpots =
+      activities.find((a) => a.activity === topChoice)?.capacity! -
+      schedule.filter((s) => s.activity === topChoice).length;
+
+    return currentActivity !== topChoice && availableSpots >= 2; // At least room for a small cohort
+  });
+
+  if (studentsNeedingMoves.length === 0) return { schedule, improved: false };
+
+  // Step 2: Group students by their top-choice activity
+  const groupedByTopChoice: Map<string, string[]> = new Map();
+
+  for (const student of studentsNeedingMoves) {
+    const topChoice = student.activity[0].activity;
+    if (!groupedByTopChoice.has(topChoice)) {
+      groupedByTopChoice.set(topChoice, []);
+    }
+    groupedByTopChoice.get(topChoice)!.push(student.identifier);
+  }
+
+  // Step 3: Try moving cohorts based on available spots
+  let improved = false;
+
+  for (const [activity, students] of groupedByTopChoice.entries()) {
+    const availableSpots =
+      activities.find((a) => a.activity === activity)?.capacity! -
+      schedule.filter((s) => s.activity === activity).length;
+
+    // Get cohorts within this group based on peer preferences
+    const moveableCohorts = getCohorts(
+      studentsNeedingMoves.filter((s) => students.includes(s.identifier)), // Only students in this group
+      availableSpots, // Cohort can't exceed available spots
+      3 // Min peer weight threshold
+    ).filter((cohort) => cohort.length > 1);
+
+    for (const cohort of moveableCohorts) {
+      // Try moving the whole cohort
+      let newSchedule = schedule.map((assignment) =>
+        cohort.includes(assignment.student)
+          ? { ...assignment, activity: activity }
+          : assignment
+      );
+
+      let newScore = scoreSchedule(newSchedule, studentPreferences);
+      if (newScore > scoreSchedule(schedule, studentPreferences)) {
+        console.log(`Moving cohort to ${activity}`, cohort);
+        return { schedule: newSchedule, improved: true };
+      }
+    }
+  }
+
+  return { schedule, improved };
+};
+
 export const improveSchedule = (
-  schedule,
+  schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[],
   maxIterations = 10
@@ -187,25 +253,45 @@ export const improveSchedule = (
     studentPreferences,
     activities
   );
+
   let iterations = 1;
   schedule = newSchedule;
+  let strategy: "cohort" | "leasthappy" = "cohort";
+
   while (improved && iterations < maxIterations) {
-    ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
-      schedule,
-      studentPreferences,
-      activities
-    ));
+    if (strategy === "cohort") {
+      ({ schedule: newSchedule, improved } = improveByMovingCohorts(
+        schedule,
+        studentPreferences,
+        activities
+      ));
+
+      if (!improved) {
+        strategy = "leasthappy"; // Switch to least-happy swaps if cohort moves fail
+      }
+    } else if (strategy === "leasthappy") {
+      ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
+        schedule,
+        studentPreferences,
+        activities
+      ));
+    }
+
     if (!improved) {
-      console.log("Stuck, let's mutate");
       newSchedule = mutateSchedule(schedule, studentPreferences, activities);
       ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
         newSchedule,
         studentPreferences,
         activities
       ));
+
+      // Reset strategy to cohort-based moves first
+      strategy = "cohort";
     }
+
     schedule = newSchedule;
     iterations++;
   }
+
   return schedule;
 };
