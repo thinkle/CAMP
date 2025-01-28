@@ -24,6 +24,7 @@
     Activity,
     ScheduleInfo,
     WorkerMessage,
+    Schedule,
   } from "./../types.ts";
   import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
 
@@ -41,8 +42,20 @@
   export let onImprove: (schedule) => void;
   export let onWrite: (schedule) => void;
   export let clusterMap: FamilyClusters;
+  type ClusterInfo = {
+    reference: Schedule;
+    set: Set<Schedule>;
+    infoSet: Set<ScheduleInfo>;
+    avgScore: Number;
+    bestScore: Number;
+    bestSchedule: ScheduleInfo;
+  };
 
-  let sortMode: "best" | "distant" | "random" | "random-top" = "best";
+  export let clusters: ClusterInfo[] = [];
+  let theCluster: ClusterInfo;
+
+  let sortMode: "best" | "distant" | "random" | "random-top" | "cluster" =
+    "best";
   let sortedSchedules = [...schedules];
 
   function shuffle(array) {
@@ -128,50 +141,31 @@
   $: scheduleView = sortedSchedules.slice(page * n, (page + 1) * n);
   $: differenceGrid = calculateDifferenceGrid(scheduleView);
   let bestLabel = "⭐";
-  let labels = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-  ];
+  let labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   let checked = [];
   let lastChecked = null;
 
   function toggleSchedule(id) {
     if (checked.indexOf(id) > -1) {
-      console.log("uncheck", id.substring(0, 5));
       checked = checked.filter((i) => i !== id);
       lastChecked = checked[checked.length - 1];
     } else {
-      console.log("check", id.substring(0, 5));
       checked = [...checked, id];
       lastChecked = id;
     }
   }
+
+  let mode: "clusters" | "schedules" = "schedules";
 </script>
 
+<TabBar>
+  <TabItem on:click={() => (mode = "schedules")} active={mode === "schedules"}
+    >Schedules</TabItem
+  >
+  <TabItem on:click={() => (mode = "clusters")} active={mode === "clusters"}
+    >Clusters</TabItem
+  >
+</TabBar>
 {#if checked.length > 0}
   <Bar>
     {checked.length} Selected
@@ -206,62 +200,106 @@
     </Bar>
   {/if}
 {/if}
-<Bar --select-width="120px">
-  <Select bind:value={sortMode}>
-    <option value="best">Best Schedules</option>
-    <option value="random">Random</option>
-    <option value="random-top">Random Top Quartile</option>
-  </Select>
-  <div style="display:flex;align-items:center">
-    <MiniButton on:click={() => (page = 0)}>&lt;&lt;</MiniButton>
-    <MiniButton on:click={() => (page = Math.max(0, page - 1))}>&lt;</MiniButton
-    >
-    <MiniButton on:click={() => (page = Math.min(page + 1, pages))}
-      >&gt;</MiniButton
-    >
-    <MiniButton on:click={() => (page = pages)}>&gt;&gt;</MiniButton>
-  </div>
-</Bar>
-<Table>
-  <tr>
-    <th />
-    <th>{bestLabel}</th>
-    {#each labels.slice(0, n) as label}
-      <th>{label}</th>
-    {/each}
-  </tr>
-  {#each scheduleView as schedule, i}
+{#if mode === "schedules"}
+  <Bar --select-width="120px">
+    <Select bind:value={sortMode}>
+      <option value="best">Best Schedules</option>
+      <option value="random">Random</option>
+      <option value="random-top">Random Top Quartile</option>
+      <option value="cluster">By Cluster</option>
+    </Select>
+    <div style="display:flex;align-items:center">
+      <MiniButton on:click={() => (page = 0)}>&lt;&lt;</MiniButton>
+      <MiniButton on:click={() => (page = Math.max(0, page - 1))}
+        >&lt;</MiniButton
+      >
+      <MiniButton on:click={() => (page = Math.min(page + 1, pages))}
+        >&gt;</MiniButton
+      >
+      <MiniButton on:click={() => (page = pages)}>&gt;&gt;</MiniButton>
+    </div>
+    {#if sortMode == "cluster"}
+      <!-- Add cluster chooser with maybe some metadata as our selectors, 
+       like - letter, # scheds, top score
+          [A (7 scheds) - 8748], 
+          [B (9 scheds) - 8909]
+       
+       top -->
+      <select bind:value={theCluster}>
+        {#each clusters as cluster, i}
+          <option value={cluster}>
+            {i + 1}. {cluster.infoSet.size} sched (+{cluster.bestScore})
+          </option>
+        {/each}
+      </select>
+    {/if}
+  </Bar>
+  <Table>
     <tr>
-      <th>
-        <Checkbox
-          checked={checked.indexOf(schedule.id) > -1}
-          on:click={() => toggleSchedule(schedule.id)}
-        >
-          {labels[i]}. {schedule.score}
-        </Checkbox>
-        <br />{schedule.alg}
-      </th>
-      <td>
-        {#if schedule == bestSchedule}
-          {bestLabel}
-        {:else}
-          <SimilarityIndicator
-            similarity={cachingCompare(schedule, bestSchedule)}
-          />
-        {/if}
-      </td>
-      {#each scheduleView as other, j}
-        <td>
-          {#if i === j}
-            -
-          {:else}
-            <SimilarityIndicator similarity={differenceGrid[i][j]} />
-          {/if}
-        </td>
+      <th />
+      <th>{bestLabel}</th>
+      {#each labels.slice(0, n) as label}
+        <th>{label}</th>
       {/each}
     </tr>
-  {/each}
-</Table>
+    {#each scheduleView as schedule, i}
+      <tr>
+        <th>
+          <Checkbox
+            checked={checked.indexOf(schedule.id) > -1}
+            on:click={() => toggleSchedule(schedule.id)}
+          >
+            {labels[i]}. {schedule.score}
+          </Checkbox>
+          <br />{schedule.alg}
+        </th>
+        <td>
+          {#if schedule == bestSchedule}
+            {bestLabel}
+          {:else}
+            <SimilarityIndicator
+              similarity={cachingCompare(schedule, bestSchedule)}
+            />
+          {/if}
+        </td>
+        {#each scheduleView as other, j}
+          <td>
+            {#if i === j}
+              -
+            {:else}
+              <SimilarityIndicator similarity={differenceGrid[i][j]} />
+            {/if}
+          </td>
+        {/each}
+      </tr>
+    {/each}
+  </Table>
+{:else}
+  <Table>
+    <tr>
+      <th>Cluster</th>
+      <th># Scheds</th>
+      <th>Best Score</th>
+      <th />
+    </tr>
+    {#each clusters as cluster, i}
+      <tr>
+        <td>{i + 1}</td>
+        <td>{cluster.infoSet.size}</td>
+        <td>{cluster.bestScore}</td>
+        <td>
+          <Button
+            on:click={() => {
+              theCluster = cluster;
+              sortMode = "cluster";
+              mode = "schedules";
+            }}>Explore</Button
+          >
+        </td>
+      </tr>
+    {/each}
+  </Table>
+{/if}
 
 <style>
   .progress {
