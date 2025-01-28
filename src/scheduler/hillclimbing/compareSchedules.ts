@@ -5,15 +5,34 @@ export type Similarity = {
   cohortSimilarity: number;
 };
 
+export type SimilarityError = {
+  assignmentSimilarity: 0;
+  cohortSimilarity: 0;
+  error: any;
+  message: string;
+};
+
 export const compareSchedules = (
   schedule1: Schedule,
   schedule2: Schedule
-): Similarity => {
+): Similarity | SimilarityError => {
   schedule1.sort((a, b) => a.student.localeCompare(b.student));
   schedule2.sort((a, b) => a.student.localeCompare(b.student));
-  let assignmentSimilarity = getAssignmentSimilarity(schedule1, schedule2);
-  let cohortSimilarity = getCohortSimilarity(schedule1, schedule2);
-  return { assignmentSimilarity, cohortSimilarity };
+  try {
+    let assignmentSimilarity = getAssignmentSimilarity(schedule1, schedule2);
+    let cohortSimilarity = getCohortSimilarity(schedule1, schedule2);
+    return { assignmentSimilarity, cohortSimilarity };
+  } catch (err) {
+    console.error("Unexpected error comparing schedules: ", err);
+    console.error("schedule1: ", schedule1);
+    console.error("schedule2: ", schedule2);
+    return {
+      assignmentSimilarity: 0,
+      cohortSimilarity: 0,
+      error: err,
+      message: err.message,
+    };
+  }
 };
 
 export const getAssignmentSimilarity = (
