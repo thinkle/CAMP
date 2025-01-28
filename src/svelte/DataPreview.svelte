@@ -50,7 +50,7 @@
           }
         });
       });
-      activityRequestWeights.sort((a, b) => a - b);
+      activityRequestWeights.sort((a, b) => b - a);
     }
   }
 </script>
