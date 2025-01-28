@@ -12,7 +12,7 @@ declare namespace google.script {
   readBuildData(preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
   writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
   clearBuildData(): void;
-  readData(): void;
+  readData(keepEmpty: boolean): void;
   addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): void;
   setupPreferencesSheet(activity_preferences: number, peer_preferences: number): void;
   setupActivitiesSheet(): void

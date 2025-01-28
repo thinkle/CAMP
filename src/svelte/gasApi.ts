@@ -73,12 +73,12 @@ export const GoogleAppsScript = {
       });
     },
 
-     readData(): Promise<{ activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }> {
+     readData(keepEmpty: boolean): Promise<{ activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: { activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
-          .readData();
+          .readData(keepEmpty);
       });
     },
 
