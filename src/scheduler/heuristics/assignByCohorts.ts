@@ -17,16 +17,39 @@ type PeerEdge = {
   weight: number;
 };
 
-export function assignByCohorts(
+function sanitizeDuplicateIdentifiers(
+  prefs: StudentPreferences[]
+): StudentPreferences[] {
+  // Map from identifier => number of occurrences
+  const identifiers = new Set<string>();
+  let outputPrefs: StudentPreferences[] = [];
+  for (const s of prefs) {
+    if (identifiers.has(s.identifier)) {
+      console.error("Ignoring duplicate row: ", s.identifier);
+    } else {
+      identifiers.add(s.identifier);
+      outputPrefs.push(s);
+    }
+  }
+  return outputPrefs;
+}
+
+export function getCohorts(
   prefs: StudentPreferences[],
-  activities: Activity[],
   maxCohortSize: number,
   minWeight = 1
-): Schedule {
-  // 1) Build all peer edges above minWeight
+): string[][] {
+  prefs = sanitizeDuplicateIdentifiers(prefs);
+
+  // 1) Build edges above minWeight, ignoring non-existent peers
   const edges: PeerEdge[] = [];
+  const validIdentifiers = new Set(prefs.map((s) => s.identifier));
+
   for (const student of prefs) {
     for (const p of student.peer) {
+      if (!validIdentifiers.has(p.peer)) {
+        continue; // Skip invalid peer references
+      }
       if (p.weight >= minWeight) {
         edges.push({
           studentA: student.identifier,
@@ -36,41 +59,42 @@ export function assignByCohorts(
       }
     }
   }
-  // Sort descending by weight (Kruskal-like approach)
+
+  // Sort descending by weight
   edges.sort((a, b) => b.weight - a.weight);
 
   // 2) Initialize union-find
-  const uf: UnionFind = { parent: new Map(), size: new Map() };
+  const uf: UnionFind = {
+    parent: new Map(),
+    size: new Map(),
+  };
   for (const s of prefs) {
     uf.parent.set(s.identifier, s.identifier);
     uf.size.set(s.identifier, 1);
   }
 
-  // Helper find function with path compression
+  // Path compression
   function find(x: string): string {
     const px = uf.parent.get(x)!;
     if (px !== x) {
-      const root = find(px);
-      uf.parent.set(x, root);
-      return root;
+      uf.parent.set(x, find(px));
     }
-    return x;
+    return uf.parent.get(x)!;
   }
 
-  // Return true if unioned, false if no union
+  // Union by size, respecting maxCohortSize
   function union(a: string, b: string): boolean {
     const rootA = find(a);
     const rootB = find(b);
-    if (rootA === rootB) return false; // same set
+    if (rootA === rootB) return false;
 
     const sizeA = uf.size.get(rootA)!;
     const sizeB = uf.size.get(rootB)!;
     if (sizeA + sizeB > maxCohortSize) {
-      // merging would exceed limit, skip
-      return false;
+      return false; // Skip if merging exceeds maxCohortSize
     }
 
-    // Union by size
+    // Merge smaller set into larger set
     if (sizeA < sizeB) {
       uf.parent.set(rootA, rootB);
       uf.size.set(rootB, sizeA + sizeB);
@@ -81,9 +105,9 @@ export function assignByCohorts(
     return true;
   }
 
-  // 3) Process edges in descending weight
+  // 3) Process edges
   for (const e of edges) {
-    union(e.studentA, e.studentB); // merges if it doesn't exceed maxCohortSize
+    union(e.studentA, e.studentB);
   }
 
   // 4) Build cohorts from union-find sets
@@ -95,19 +119,30 @@ export function assignByCohorts(
     }
     rootMap.get(r)!.push(s.identifier);
   }
-  let cohorts = Array.from(rootMap.values()); // array of string[]
 
-  // optional: sort cohorts by descending size
-  cohorts.sort((a, b) => b.length - a.length);
+  // Sort cohorts by descending size (optional)
+  const cohorts = Array.from(rootMap.values()).sort(
+    (a, b) => b.length - a.length
+  );
+  return cohorts;
+}
 
-  // 5) Assign each cohort as a block
-  // Build capacity usage map
+export function assignByCohorts(
+  prefs: StudentPreferences[],
+  activities: Activity[],
+  maxCohortSize: number,
+  minWeight = 1
+): Schedule {
+  // 1) Get cohorts
+  const cohorts = getCohorts(prefs, maxCohortSize, minWeight);
+
+  // 2) Prepare capacity usage
   const capMap = new Map<string, number>();
   for (const a of activities) {
     capMap.set(a.activity, 0);
   }
 
-  // For quick reference, build a student->(activity->weight) map
+  // 3) Build a quick lookup: student -> (activity -> weight)
   const studentActMap = new Map<string, Map<string, number>>();
   for (const s of prefs) {
     const m = new Map<string, number>();
@@ -117,12 +152,10 @@ export function assignByCohorts(
     studentActMap.set(s.identifier, m);
   }
 
+  // 4) Assign each cohort to the best feasible activity
   const schedule: Assignment[] = [];
-
-  // For each cohort, sum up the total preference for each activity
-  // and pick the best feasible
   for (const cohort of cohorts) {
-    // sum preference for each activity
+    // Sum preference for each activity
     const scores = new Map<string, number>();
     for (const act of activities) {
       scores.set(act.activity, 0);
@@ -133,7 +166,7 @@ export function assignByCohorts(
         scores.set(actName, scores.get(actName)! + w);
       }
     }
-    // sort activities by descending sum
+    // Sort by descending sum
     const sortedActs = [...scores.entries()].sort((a, b) => b[1] - a[1]);
 
     let assigned = false;
@@ -143,17 +176,22 @@ export function assignByCohorts(
       if (used + cohort.length <= totalCap) {
         // seat entire cohort here
         capMap.set(actName, used + cohort.length);
-        for (const m of cohort) {
-          schedule.push({ student: m, activity: actName });
+        for (const studentId of cohort) {
+          schedule.push({ student: studentId, activity: actName });
         }
         assigned = true;
         break;
       }
     }
+
     if (!assigned) {
+      console.log("We had max size of ", maxCohortSize);
+      console.log("We generated cohorts: ", cohorts);
+      console.log("We had activities: ", activities);
+      console.log("We had prefs: ", prefs);
       throw new Error(
         `Cohort of size ${cohort.length} cannot fit into any activity. 
-           Consider either smaller maxCohortSize or splitting logic.`
+         Consider smaller maxCohortSize or splitting logic.`
       );
     }
   }
