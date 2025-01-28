@@ -33,7 +33,7 @@ export function setupPreferencesSheet(
   sheet.clearConditionalFormatRules();
 
   let weightValidation = SpreadsheetApp.newDataValidation()
-    .requireNumberBetween(-100, 100)
+    .requireNumberBetween(-10000, 10000)
     .build();
   let lastRow = Math.max(sheet.getMaxRows(), 2);
   let rules = []; // Store conditional formatting rules
@@ -77,6 +77,11 @@ export function setupPreferencesSheet(
     scoreFormula.push(activityScoreFormula);
   }
 
+  let peerValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(
+      sheet.getRange(2, STARTER_COLS.indexOf(IDCOL) + 1, lastRow - 1, 1)
+    )
+    .build();
   // Loop to handle peer preferences
   for (let i = 0; i < peer_preferences; i++) {
     columns.push(`Peer ${i + 1}`);
@@ -91,6 +96,11 @@ export function setupPreferencesSheet(
     // Add conditional formatting for peer columns
     let peerColIndex = columns.length - 1; // Peer column index
     let peerRange = sheet.getRange(2, peerColIndex, lastRow - 1);
+    // Create new data validation requiring peers to be in our
+    // identify column list...
+    sheet
+      .getRange(2, peerColIndex, lastRow - 1, 1)
+      .setDataValidation(peerValidation);
     let peerRule = SpreadsheetApp.newConditionalFormatRule()
       .whenFormulaSatisfied(
         `=AND(NOT(ISBLANK($B2)),vlookup(${sheet
