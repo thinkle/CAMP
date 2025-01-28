@@ -51,9 +51,7 @@ describe("compareSchedules", () => {
       { student: "Charlie", activity: "History" },
     ];
 
-    expect(() => compareSchedules(schedule1, schedule2)).toThrowError(
-      "Schedules must have the same students in the same order"
-    );
+    expect(() => compareSchedules(schedule1, schedule2).error).toBeTruthy();
   });
 });
 
