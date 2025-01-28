@@ -58,7 +58,7 @@ export function readData(): {
 }
 
 export function readBuildData(): import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[] {
-  return null; // TODO: Replace with mock return value of type import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]
+  return []; // TODO: Replace with mock return value of type import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[]
 }
 
 export function writeBuildData(
