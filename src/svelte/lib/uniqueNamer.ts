@@ -159,6 +159,11 @@ export const names = [
   "🔗 Link",
 ];
 
+export function getFirstEmoji(name: string): string {
+  const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
+  return [...segmenter.segment(name)][0].segment;
+}
+
 function getNameFromCount(n: number): string {
   if (n < names.length) {
     return names[n]; // Use predefined name if available
@@ -171,7 +176,7 @@ function getNameFromCount(n: number): string {
   let count = n;
   while (count > 0) {
     let index = count % base;
-    generatedName = names[index][0] + generatedName;
+    generatedName = getFirstEmoji(names[index]) + generatedName;
     count = Math.floor(count / base);
   }
 

@@ -51,3 +51,13 @@ export type WorkerMessage = {
   count?: number;
   total?: number;
 };
+
+export type ClusterInfo = {
+  reference: Schedule;
+  set: Set<Schedule>;
+  infoSet: Set<ScheduleInfo>;
+  avgScore: Number;
+  bestScore: Number;
+  bestSchedule: ScheduleInfo;
+  name: string;
+};

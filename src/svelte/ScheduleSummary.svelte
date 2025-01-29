@@ -3,10 +3,11 @@
   import type { Similarity } from "./../scheduler/hillclimbing/compareSchedules.ts";
   import { Button } from "contain-css-svelte";
 
-  import type { ScheduleInfo } from "./../types.ts";
+  import type { ClusterInfo, ScheduleInfo } from "./../types.ts";
   import { GoogleAppsScript } from "./gasApi.js";
   export let schedule: ScheduleInfo;
   export let comparison: Similarity | undefined = undefined;
+  export let clusters: ClusterInfo[] | undefined = undefined;
   let timestamp = new Date().getTime();
   let lastId = null;
 
@@ -29,6 +30,16 @@
     <th>Algorithm</th>
     <td>{schedule.alg}</td>
   </tr>
+  {#if clusters && clusters.length}
+    {#each clusters as cluster}
+      {#if cluster.infoSet.has(schedule)}
+        <tr>
+          <th>Cluster</th>
+          <td>{cluster.name}</td>
+        </tr>
+      {/if}
+    {/each}
+  {/if}
   <tr>
     <th>Generation</th>
     <td>{schedule.generation}</td>
