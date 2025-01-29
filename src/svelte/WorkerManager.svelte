@@ -253,7 +253,7 @@
         >Explore</TabItem
       >
     </TabBar>
-    {#if tab == "load"}
+    <div class="content" class:visible={tab == "load"}>
       <Button
         on:click={() => {
           saveBuildBusy = "Reading build data...";
@@ -277,7 +277,8 @@
           {saveBuildBusy}
         </Progress>
       {/if}
-    {:else if tab == "save"}
+    </div>
+    <div class="content" class:visible={tab == "save"}>
       <Button
         on:click={async () => {
           saveBuildBusy = "Saving build data...";
@@ -290,7 +291,8 @@
           {saveBuildBusy}
         </Progress>
       {/if}
-    {:else if tab == "build"}
+    </div>
+    <div class="content" class:visible={tab == "build"}>
       <BuildProgress {workerIds} {workerMessages} {stopWorker}></BuildProgress>
       <b>{schedules.length} Total Schedules ({clusterMap.size} clusters)</b>
       {#if schedules.length}
@@ -340,7 +342,8 @@
           {improveSchedule}
         />
       {/if}
-    {:else if tab == "explore"}
+    </div>
+    <div class="content" class:visible={tab == "explore"}>
       <BuildExplorer
         {data}
         {schedules}
@@ -352,12 +355,15 @@
         onWrite={(schedInfo) =>
           GoogleAppsScript.writeSchedule(schedInfo.schedule)}
       />
-    {/if}
+    </div>
   </div>
 {/if}
 
 <style>
-  .progress {
-    margin-bottom: 1rem;
+  .content {
+    display: none;
+  }
+  .visible {
+    display: block;
   }
 </style>
