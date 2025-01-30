@@ -317,7 +317,7 @@
         <td>
           <Button
             on:click={() => {
-              theCluster = cluster;
+              theClusterName = cluster.name;
               sortMode = "cluster";
               mode = "schedules";
             }}>Explore</Button
