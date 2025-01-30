@@ -3,7 +3,10 @@ import { createCrosses } from "../scheduler/hillclimbing/evolveSchedules";
 import { generate } from "../scheduler/hillclimbing/generator";
 import { mergeSchedules } from "../scheduler/hillclimbing/mergeSchedules";
 import { createScheduleInfo } from "../scheduler/hillclimbing/scheduleInfo";
-import { mapFamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
+import {
+  buildClusterInfoList,
+  mapFamilyClusters,
+} from "../scheduler/hillclimbing/clusterSchedules";
 
 import type {
   Schedule,
@@ -31,7 +34,8 @@ async function improveForever(
   schedule: ScheduleInfo,
   prefs: StudentPreferences[],
   activities: Activity[],
-  stopAfter = 10
+  stopAfter = 10,
+  existingSet: Set<string> | null
 ) {
   postMessage({
     type: "started",
@@ -58,17 +62,22 @@ async function improveForever(
         schedule.generation + 1
       );
       if (improvedInfo.score > schedule.score) {
-        console.log(
-          "worker: Improved schedule",
-          improvedInfo.score,
-          improvedInfo
-        );
-        postMessage({
-          type: "improved",
-          schedule: improvedInfo,
-          message: `Improved by ${improvedInfo.score - startingScore}`,
-        });
         schedule = improvedInfo;
+        if (existingSet && existingSet.has(improvedInfo.id)) {
+          console.log("Worker ignoring dup");
+          continue;
+        } else {
+          console.log(
+            "worker: Improved schedule",
+            improvedInfo.score,
+            improvedInfo
+          );
+          postMessage({
+            type: "improved",
+            schedule: improvedInfo,
+            message: `Improved by ${improvedInfo.score - startingScore}`,
+          });
+        }
       } else {
         postMessage({
           type: "doneImproving",
@@ -90,7 +99,6 @@ async function improveForever(
     complete: true,
     message: "Stopped after " + rounds + " rounds",
   });
-  console.log("worker: done improving");
 }
 
 async function generateStarters(
@@ -102,7 +110,6 @@ async function generateStarters(
   postMessage({ type: "started", message: "Started generating schedules" });
   running = true;
   let i = 0;
-  console.log("worker: generateStarters", prefs, activities, rounds);
   for (let scheduleInfo of generate(prefs, activities, rounds, algs)) {
     i++;
     postMessage({
@@ -120,7 +127,7 @@ async function generateStarters(
       return;
     }
   }
-  console.log("worker done generating");
+
   postMessage({
     type: "stopped",
     message: `Generated ${i} schedules.`,
@@ -132,7 +139,8 @@ async function evolveGenerations(
   population: ScheduleInfo[],
   prefs: StudentPreferences[],
   activities: Activity[],
-  rounds: number | null
+  rounds: number | null,
+  existingSet: Set<string> | null
 ) {
   running = true;
   postMessage({
@@ -150,11 +158,15 @@ async function evolveGenerations(
   );
   let n = 0;
   while (running && (!rounds || n < rounds)) {
-    console.log("worker: Evolving generation", n);
     let nextGen = [];
-    for (let offspring of createCrosses(population, prefs, activities, 10)) {
+    for (let offspring of createCrosses(
+      population,
+      prefs,
+      activities,
+      10,
+      existingSet
+    )) {
       nextGen.push(offspring);
-      console.log("worker: Evolved schedule", offspring.score, offspring);
       postMessage({
         type: "evolved",
         message: "Evolved schedule",
@@ -203,7 +215,8 @@ self.onmessage = (e) => {
           payload.schedule,
           payload.prefs,
           payload.activities,
-          payload.stopAfter
+          payload.stopAfter,
+          payload.existingSet
         );
         break;
 
@@ -223,18 +236,13 @@ self.onmessage = (e) => {
           payload.population,
           payload.prefs,
           payload.activities,
-          payload.rounds
+          payload.rounds,
+          payload.existingSet
         );
         break;
 
       case "cluster":
         // Cluster schedules
-        console.log(
-          "Mapping clusters...",
-          payload.threshold,
-          payload.schedules,
-          payload.clusters
-        );
         postMessage({
           type: "started",
           message: "Started clustering schedules",
@@ -242,9 +250,9 @@ self.onmessage = (e) => {
         let map = mapFamilyClusters(
           payload.threshold,
           payload.schedules,
-          payload.clusters
+          payload.clusters,
+          payload.referenceSchedules || []
         );
-        console.log("Done mapping", map);
         postMessage({
           type: "clustered",
           map,
@@ -264,6 +272,6 @@ self.onmessage = (e) => {
   } catch (err) {
     // Catch any errors and send back to the main thread
 
-    postMessage({ type: "error", message: err.message });
+    postMessage({ type: "error", message: err.message, complete: true });
   }
 };
