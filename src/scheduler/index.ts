@@ -4,5 +4,5 @@ export { assignByActivity } from "./heuristics/activityFirstHeuristic";
 export { assignByPeer } from "./heuristics/peerFirstHeuristic";
 export { validateSchedule, scoreSchedule } from "./scoring/scoreSchedule";
 export { scheduleToId, idToSchedule } from "./hillclimbing/scheduleSaver";
-export { evolveSchedules } from "./hillclimbing/evolveSchedules";
+export { createCrosses } from "./hillclimbing/evolveSchedules";
 export { improveSchedule } from "./hillclimbing/improveSchedule";
