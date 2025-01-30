@@ -68,7 +68,7 @@ export function assignByMostConstrained(
       activityData[b].totalPriorityScore / activityData[b].capacity -
       activityData[a].totalPriorityScore / activityData[a].capacity
   );
-  console.log("Sorted activities into pool: ", sortedActivities);
+
   for (let activity of sortedActivities) {
     let data = activityData[activity];
     let assignedCount = 0;
@@ -83,7 +83,6 @@ export function assignByMostConstrained(
       scheduleMap.set(pref.identifier, activity);
       assignedCount++;
     }
-    console.log("Assigned", assignedCount, "students to", activity);
   }
   // Now we need to make sure all students are assigned...
   for (let pref of prefs) {
@@ -99,7 +98,6 @@ export function assignByMostConstrained(
         }
       }
       if (!assigned) {
-        console.log("Could not assign student", pref.identifier);
         throw new Error("Could not assign student");
       }
     }
@@ -108,6 +106,6 @@ export function assignByMostConstrained(
   scheduleMap.forEach((activity, student) =>
     schedule.push({ student, activity })
   );
-  console.log("Final schedule:", schedule);
+
   return schedule;
 }

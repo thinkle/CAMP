@@ -185,10 +185,10 @@ export function assignByCohorts(
     }
 
     if (!assigned) {
-      console.log("We had max size of ", maxCohortSize);
+      /* console.log("We had max size of ", maxCohortSize);
       console.log("We generated cohorts: ", cohorts);
       console.log("We had activities: ", activities);
-      console.log("We had prefs: ", prefs);
+      console.log("We had prefs: ", prefs); */
       throw new Error(
         `Cohort of size ${cohort.length} cannot fit into any activity. 
          Consider smaller maxCohortSize or splitting logic.`

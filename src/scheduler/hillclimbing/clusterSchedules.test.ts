@@ -43,7 +43,6 @@ describe("mapFamilyClusters", () => {
 
     expect(result.size).toBe(1);
     expect(result.has(schedules[0])).toBe(true);
-    console.log("This is a set, right?", result.get(schedules[0]));
     expect(result.get(schedules[0])).toEqual(
       new Set([schedules[0], schedules[1]])
     );
