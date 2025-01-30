@@ -284,7 +284,16 @@
       <Button
         on:click={async () => {
           saveBuildBusy = "Saving build data...";
-          await GoogleAppsScript.writeBuildData(schedules, data);
+          // Batch it if we have too much data...
+          let bestHalf = schedules
+            .sort((a, b) => b.score - a.score)
+            .slice(0, schedules.length / 2);
+          while (bestHalf.length) {
+            await GoogleAppsScript.writeBuildData(
+              bestHalf.splice(0, 200),
+              data
+            );
+          }
           saveBuildBusy = "";
         }}>Save Build Data</Button
       >
