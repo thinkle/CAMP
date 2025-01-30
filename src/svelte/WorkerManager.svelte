@@ -25,12 +25,11 @@
     Activity,
     ScheduleInfo,
     WorkerMessage,
-    ClusterInfo,
   } from "./../types.ts";
   import { GoogleAppsScript } from "./gasApi";
   import { onMount } from "svelte";
   import { WorkerPool } from "./lib/workerPool";
-  import { idToSchedule } from "../scheduler";
+  import { idToSchedule, scoreSchedule } from "../scheduler";
   import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
 
   let clustering = false; // don't duplicate clustering requests...
@@ -60,7 +59,7 @@
       scheduleIdSet.add(schedule.id);
       return true;
     } else {
-      console.log("Schedule already exists in list.");
+      console.log("addSchedule: Schedule already exists in list.");
       return false;
     }
   };
@@ -86,7 +85,6 @@
     worker.onmessage = (event) => {
       const message = event.data;
       let id = message.id;
-      console.log("Svelte got worker message: ", message);
       // Handle different message types from the worker
       switch (message.type) {
         case "generated":
@@ -134,7 +132,6 @@
           workerMessages[id] = message;
           running = false;
           clustering = false;
-          console.log("Updated clusterMap!", clusterMap);
           break;
 
         default:
@@ -187,16 +184,18 @@
     bestSchedule: ScheduleInfo;
     name: string;
   }[] = [];
+  let existingSet = new Set(schedules.map((s) => s.id));
+  $: existingSet = new Set(schedules.map((s) => s.id));
 
   // 🌍 Persistent Cache: Schedule lookup map
   import { Namer } from "./lib/uniqueNamer";
   let namer = Namer();
 
-  const setClusters = (newClusters: ClusterInfo[]) => {
-    clusters = newClusters;
-  };
   const setClusterMap = (newClusterMap: FamilyClusters) => {
     clusterMap = newClusterMap;
+  };
+  const setClusters = (newClusters) => {
+    clusters = newClusters;
   };
 
   function evolveScheduleGroup(group: ScheduleInfo[]) {
@@ -207,6 +206,7 @@
           population: group,
           prefs: data.studentPreferences,
           activities: data.activities,
+          existingSet,
           rounds,
         },
       });
@@ -224,6 +224,7 @@
         prefs: data.studentPreferences,
         activities: data.activities,
         stopAfter: null,
+        existingSet,
       },
     });
     setWorkerMessage("Improving the best schedule...");
@@ -265,6 +266,7 @@
                   data.studentPreferences,
                   data.activities
                 );
+                s.score = scoreSchedule(s.schedule, data.studentPreferences);
               }
             }
             schedules = scheduleInfo;
@@ -300,8 +302,8 @@
           {data}
           {schedules}
           {clusterMap}
-          {setClusters}
           {setClusterMap}
+          {setClusters}
           {worker}
           {clusters}
         ></Clusterer>
