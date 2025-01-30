@@ -233,7 +233,6 @@ const improveByMovingCohorts = (
 
       let newScore = scoreSchedule(newSchedule, studentPreferences);
       if (newScore > scoreSchedule(schedule, studentPreferences)) {
-        console.log(`Moving cohort to ${activity}`, cohort);
         return { schedule: newSchedule, improved: true };
       }
     }
