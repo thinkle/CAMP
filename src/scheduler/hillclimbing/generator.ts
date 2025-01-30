@@ -141,7 +141,6 @@ export function* generate(
           console.log("Ignoring duplicate schedule");
         }
       } catch (e) {
-        console.log(e);
         continue;
       }
     }
