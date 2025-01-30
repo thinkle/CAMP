@@ -8,7 +8,10 @@
     ScheduleInfo,
   } from "./../types.ts";
 
-  import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
+  import {
+    buildClusterInfoList,
+    type FamilyClusters,
+  } from "../scheduler/hillclimbing/clusterSchedules";
 
   let clustering = false; // don't duplicate clustering requests...
 
@@ -30,82 +33,28 @@
     bestSchedule: ScheduleInfo;
     name: string;
   }[];
-  export let setClusters: (clusters: ClusterInfo[]) => void;
+
   export let setClusterMap: (clusterMap: FamilyClusters) => void;
+  export let setClusters: (clusters: any) => void;
 
-  // 🌍 Persistent Cache: Schedule lookup map
-  let scheduleMap = new Map<string, ScheduleInfo>();
-  import { Namer } from "./lib/uniqueNamer";
-  let namer = Namer();
-  function buildClusters() {
-    if (!clusterMap) return;
+  $: if (clusterMap) {
+    updateClusters();
+  }
 
-    clusters = [];
-    for (let [id, cluster] of clusterMap) {
-      let reference = id;
-      let set = cluster;
-      let infoSet: Set<ScheduleInfo> = new Set();
-      let avgScore = 0;
-      let bestScore = -Infinity;
-      let bestSchedule: ScheduleInfo | null = null;
-      let name = namer.getName(reference);
-
-      for (let s of set) {
-        let key = JSON.stringify(s);
-
-        // 🔍 Check if we already have this schedule in the map
-        let info = scheduleMap.get(key);
-
-        if (!info) {
-          // 🚀 If not cached, find it in `schedules` and store it
-          info = schedules.find((si) => JSON.stringify(si.schedule) === key);
-          if (info) {
-            scheduleMap.set(key, info);
-          } else {
-            console.error("Schedule not found in schedule info: ", s);
-            continue; // Skip to the next schedule
-          }
-        }
-
-        // Process schedule
-        infoSet.add(info);
-        avgScore += info.score;
-        if (info.score > bestScore) {
-          bestScore = info.score;
-          bestSchedule = info;
-        }
-      }
-
-      if (infoSet.size > 0) {
-        avgScore /= infoSet.size;
-        clusters.push({
-          reference,
-          set,
-          infoSet,
-          avgScore,
-          bestScore,
-          bestSchedule,
-          name,
-        });
-      }
+  function updateClusters() {
+    console.log("Build clusters!");
+    let clusters = buildClusterInfoList(clusterMap, schedules);
+    for (let c of clusters) {
+      c.name = namer.getName(c.reference);
     }
     setClusters(clusters);
   }
 
-  // Utility: Debounce execution (waits for a small pause before running)
-  function debounce(fn: Function, delay = 300) {
-    let timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => fn(...args), delay);
-    };
-  }
-
-  const buildClustersDebounced = debounce(buildClusters, 2000);
-
-  $: if (clusterMap) {
-    buildClustersDebounced();
-  }
+  // 🌍 Persistent Cache: Schedule lookup map
+  let scheduleMap = new Map<string, ScheduleInfo>();
+  import { Namer } from "./lib/uniqueNamer";
+  import { scheduleToId } from "../scheduler/index.js";
+  let namer = Namer();
 
   let lastThreshold = -1;
   let clusteringThreshold = 0.9;
@@ -117,18 +66,26 @@
       setClusterMap(clusterMap);
       let namer = Namer();
     }
-    let pendingSchedules = schedules.filter(
-      (s) => !scheduleMap.has(JSON.stringify(s.schedule))
-    );
+    let pendingSchedules = schedules.filter((s) => !scheduleMap.has(s.id));
+    for (let s of pendingSchedules) {
+      scheduleMap.set(s.id, s);
+    }
 
     worker.postMessage({
       type: "cluster",
       payload: {
-        schedules: pendingSchedules.map((s) => s.schedule), // ✅ Send all accumulated schedules
+        schedules: pendingSchedules,
         prefs: data.studentPreferences,
         activities: data.activities,
         threshold: clusteringThreshold,
         clusters: clusterMap,
+        referenceSchedules: [...clusterMap.keys()]
+          .map(
+            (referenceScheduleId) =>
+              scheduleMap.get(referenceScheduleId) ||
+              schedules.find((s) => s.id === referenceScheduleId)
+          )
+          .filter(Boolean), // Removes any undefined values
       },
     });
   }

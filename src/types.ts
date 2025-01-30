@@ -45,6 +45,7 @@ export type WorkerMessage = {
     | "started"
     | "clustered";
   map?: FamilyClusters;
+  clusters?: ClusterInfo[];
   message: string;
   schedule?: ScheduleInfo;
   population?: ScheduleInfo[];
@@ -53,7 +54,7 @@ export type WorkerMessage = {
 };
 
 export type ClusterInfo = {
-  reference: Schedule;
+  reference: string;
   set: Set<Schedule>;
   infoSet: Set<ScheduleInfo>;
   avgScore: Number;
