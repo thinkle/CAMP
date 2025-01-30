@@ -1,8 +1,6 @@
 <script lang="ts">
   import WorkerManager from "./WorkerManager.svelte";
 
-  import ScheduleBuilder from "./ScheduleBuilder.svelte";
-
   import DataPreview from "./DataPreview.svelte";
 
   import type { StudentPreferences, Activity } from "./../types.ts";
