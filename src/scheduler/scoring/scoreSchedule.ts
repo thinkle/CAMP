@@ -90,19 +90,20 @@ export const scoreSchedule = (
   }
 
   // Sort scores and take the bottom 10%
-  individualScores.sort((a, b) => a - b);
+  /* individualScores.sort((a, b) => a - b);
   const decileSize = Math.max(1, Math.floor(individualScores.length / 10)); // Ensure at least 1 value
   const lowestDecileScores = individualScores.slice(0, decileSize);
-
+   */
   // Handle potential empty array case to avoid NaN
-  const avgLowestDecileScore =
+  /* const avgLowestDecileScore =
     lowestDecileScores.length > 0
       ? lowestDecileScores.reduce((acc, score) => acc + score, 0) /
         lowestDecileScores.length
       : 0;
-
+ */
   // Penalize schedules with low-satisfaction students
-  const weightedLowestScore = avgLowestDecileScore * schedule.length;
+  //const weightedLowestScore = avgLowestDecileScore * schedule.length;
 
-  return Math.floor(activityScore + peerScore + weightedLowestScore);
+  //return Math.floor(activityScore + peerScore + weightedLowestScore);
+  return Math.floor(activityScore + peerScore);
 };
