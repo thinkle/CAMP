@@ -50,6 +50,7 @@ export function setupPreferencesSheet(
     columns.push(WEIGHT_HEADER);
     sheet.setColumnWidth(columns.length, WEIGHT_WIDTH);
 
+    // Set validation on the weight column (just added)
     sheet
       .getRange(2, columns.length, lastRow - 1, 1)
       .setDataValidation(weightValidation);
@@ -89,6 +90,7 @@ export function setupPreferencesSheet(
     columns.push(WEIGHT_HEADER);
     sheet.setColumnWidth(columns.length, WEIGHT_WIDTH);
 
+    // Set validation on the weight column (just added)
     sheet
       .getRange(2, columns.length, lastRow - 1, 1)
       .setDataValidation(weightValidation);

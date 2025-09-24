@@ -5,6 +5,11 @@ import {
   getPreferencesSheet,
   setupActivitiesSheet,
   setupPreferencesSheet,
+  STARTER_COLS,
+  IDCOL,
+  ASSIGNED_ACTIVITY_COL,
+  OVERRIDE_COL,
+  SCORE_HEADER,
 } from "../gas/setupSheets";
 import { generateAllMockData } from "../scheduler/mocks/mockDataGenerator";
 import type { StudentPreferences, Activity } from "../types";
@@ -72,28 +77,24 @@ function buildPreferenceRow(
   activityPrefs: number,
   peerPrefs: number
 ): any[] {
+  // Use STARTER_COLS to build the starter columns dynamically
   const row: any[] = [];
-
-  // 1) identifier
-  row.push(student.name);
-
-  // 2) assigned activity col
-  row.push("");
-
-  // 3) override col
-  row.push("");
-
-  // 4) Activity preferences + weights
+  for (const col of STARTER_COLS) {
+    if (col === IDCOL) {
+      row.push(student.name);
+    } else {
+      row.push("");
+    }
+  }
+  // Activity preferences + weights
   for (let i = 0; i < activityPrefs; i++) {
     row.push(student.activityPreferences[i] || "");
     row.push(student.activityWeights[i] ?? 0);
   }
-
-  // 5) Peer preferences + weights
+  // Peer preferences + weights
   for (let i = 0; i < peerPrefs; i++) {
     row.push(student.peerPreferences[i] || "");
     row.push(student.peerWeights[i] ?? 0);
   }
-
   return row;
 }
