@@ -1,32 +1,29 @@
-import { ActivityPreference } from "../types";
+import { ActivityPreference, DEFAULT_SCORING_OPTIONS } from "../types";
 import {
   activityColumnName,
   preferenceSheetName,
   activitySheetName,
   universalPrefsSheetName,
   buildDataSheetName,
+  scoringSettingsSheetName,
 } from "./constants";
+
+const log = (...args: unknown[]) => {
+  console.log(...args);
+};
 export const IDCOL = "identifier";
 export const ASSIGNED_ACTIVITY_COL = "activity";
 export const OVERRIDE_COL = "override";
 export const WEIGHT_HEADER = "wght";
 export const SCORE_HEADER = "score";
-export const STARTER_COLS = [
-  IDCOL,
-  ASSIGNED_ACTIVITY_COL,
-  OVERRIDE_COL,
-  SCORE_HEADER,
-];
+export const STARTER_COLS = [IDCOL, ASSIGNED_ACTIVITY_COL, OVERRIDE_COL, SCORE_HEADER];
 const WEIGHT_WIDTH = 30;
 const ACTIVITY_WIDTH = 100;
 const PEER_WIDTH = 150;
 
-export function setupPreferencesSheet(
-  activity_preferences = 4,
-  peer_preferences = 4
-) {
+export function setupPreferencesSheet(activity_preferences = 4, peer_preferences = 4) {
   let sheet = getPreferencesSheet();
-  let columns = STARTER_COLS;
+  let columns = [...STARTER_COLS];
 
   // Clear all existing data validations and conditional formatting
   sheet.getDataRange().clearDataValidations();
@@ -40,8 +37,10 @@ export function setupPreferencesSheet(
 
   sheet.setColumnWidth(columns.length, 100);
 
-  let scoreColumnIndex = STARTER_COLS.indexOf(SCORE_HEADER) + 1;
-  let scoreFormula = [];
+  const scoreColumnIndex = STARTER_COLS.indexOf(SCORE_HEADER) + 1;
+  let scoreFormula: string[] = [];
+  let activityMatchChecks: string[] = [];
+  let peerMatchChecks: string[] = [];
 
   // Loop to handle activity preferences
   for (let i = 0; i < activity_preferences; i++) {
@@ -76,6 +75,9 @@ export function setupPreferencesSheet(
       .getRange(2, activityColIndex + 1)
       .getA1Notation()},0)`;
     scoreFormula.push(activityScoreFormula);
+    activityMatchChecks.push(
+      `IF(${sheet.getRange(2, activityColIndex).getA1Notation()}=$B2,1,0)`
+    );
   }
 
   let peerValidation = SpreadsheetApp.newDataValidation()
@@ -121,17 +123,39 @@ export function setupPreferencesSheet(
       .getRange(2, peerColIndex + 1)
       .getA1Notation()},0),0)`;
     scoreFormula.push(peerScoreFormula);
+    peerMatchChecks.push(
+      `IFERROR(IF(VLOOKUP(${sheet
+        .getRange(2, peerColIndex)
+        .getA1Notation()},$A:$B,2,FALSE)=$B2,1,0),0)`
+    );
   }
 
-  // Combine all score formulas into a single formula
-  let combinedScoreFormula = `=IF(ISBLANK($B2), 0, (${scoreFormula.join(
-    " + "
-  )}))`;
+  // Combine all score formulas into a single formula with penalties
+  const peerPenaltyLookup = `IFERROR(VLOOKUP("noPeerPenalty", '${scoringSettingsSheetName}'!A:B, 2, FALSE), 0)`;
+  const activityPenaltyLookup = `IFERROR(VLOOKUP("noActivityPenalty", '${scoringSettingsSheetName}'!A:B, 2, FALSE), 0)`;
 
-  // Apply the score formula to the "Score" column
+  const positiveTerms = scoreFormula.length > 0 ? scoreFormula.join(" + ") : "0";
+  const peerPenaltyFormula =
+    peerMatchChecks.length > 0
+      ? `IF((${peerMatchChecks.join(" + ")})=0, ${peerPenaltyLookup}, 0)`
+      : "0";
+  const activityPenaltyFormula =
+    activityMatchChecks.length > 0
+      ? `IF((${activityMatchChecks.join(" + ")})=0, ${activityPenaltyLookup}, 0)`
+      : "0";
+  const penaltyTerms = `${peerPenaltyFormula} + ${activityPenaltyFormula}`;
+
+  const combinedScoreFormula = `=IF(ISBLANK($B2), 0, ((${positiveTerms}) - (${penaltyTerms})))`;
   sheet
     .getRange(2, scoreColumnIndex, lastRow - 1)
     .setFormula(combinedScoreFormula);
+  log(
+    "setupPreferencesSheet: wrote score formula to column",
+    scoreColumnIndex,
+    "covering",
+    lastRow - 1,
+    "rows"
+  );
 
   // Apply all conditional formatting rules
   sheet.setConditionalFormatRules(rules);
@@ -142,6 +166,9 @@ export function setupPreferencesSheet(
 
   // Set column headers
   sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
+
+  // Ensure scoring settings sheet exists with defaults if missing
+  getScoringSettingsSheet();
 }
 
 export function getPreferencesSheet() {
@@ -256,6 +283,39 @@ export function getUniversalPrefsSheet() {
     setupUniversalPrefsSheet(sheet);
   }
   return sheet;
+}
+
+export function getScoringSettingsSheet() {
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
+    scoringSettingsSheetName
+  );
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(
+      scoringSettingsSheetName
+    );
+    setupScoringSettingsSheet(sheet);
+  }
+  return sheet;
+}
+
+export function setupScoringSettingsSheet(
+  sheet: GoogleAppsScript.Spreadsheet.Sheet
+): void;
+export function setupScoringSettingsSheet(): void;
+export function setupScoringSettingsSheet(
+  sheet?: GoogleAppsScript.Spreadsheet.Sheet
+) {
+  if (!sheet) {
+    sheet = getScoringSettingsSheet();
+  }
+  sheet.clear();
+  sheet.getRange(1, 1, 1, 2).setValues([["key", "value"]]);
+  const entries = Object.entries(DEFAULT_SCORING_OPTIONS);
+  if (entries.length) {
+    sheet.getRange(2, 1, entries.length, 2).setValues(entries);
+  }
+  sheet.setFrozenRows(1);
+  sheet.setFrozenColumns(1);
 }
 
 export function getUniversalPrefsData(): ActivityPreference[] {

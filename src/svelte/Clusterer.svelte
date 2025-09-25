@@ -2,9 +2,8 @@
   import { Button, FormItem, MiniButton, Tooltip } from "contain-css-svelte";
 
   import type {
-    StudentPreferences,
+    PreferenceData,
     Schedule,
-    Activity,
     ScheduleInfo,
   } from "./../types.ts";
 
@@ -15,10 +14,7 @@
 
   let clustering = false; // don't duplicate clustering requests...
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
 
   export let worker: Worker | null;
 
@@ -71,6 +67,9 @@
       scheduleMap.set(s.id, s);
     }
 
+    if (!worker || !data) {
+      return;
+    }
     worker.postMessage({
       type: "cluster",
       payload: {

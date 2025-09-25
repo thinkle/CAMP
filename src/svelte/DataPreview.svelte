@@ -1,5 +1,9 @@
 <script lang="ts">
-  import type { StudentPreferences, Activity } from "./../types.ts";
+  import type {
+    PreferenceData,
+    StudentPreferences,
+    Activity,
+  } from "./../types.ts";
   import SetupSheets from "./SetupSheets.svelte";
 
   import { GoogleAppsScript } from "./gasApi";
@@ -16,17 +20,16 @@
     Table,
   } from "contain-css-svelte";
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
   const readData = async () => {
     data = await GoogleAppsScript.readData();
   };
   $: console.log("Data Preview: ", data);
   let item = 1;
-  let sp = data ? data.studentPreferences[0] : null;
-  let activity = data ? data.activities[0] : null;
+  let sp: StudentPreferences | null = data
+    ? data.studentPreferences[0]
+    : null;
+  let activity: Activity | null = data ? data.activities[0] : null;
   $: if (data && !sp) sp = data.studentPreferences[0];
   $: if (data && !activity) activity = data.activities[0];
 

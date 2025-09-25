@@ -5,13 +5,35 @@
 
   let inSetupMode = false;
   let npeers = 4;
-  let nactivities = 4;
+  let activityPrefSlots = 4;
+  let activityCount = 30;
+  let peerOnlyMode = false;
+  let lastActivityPrefSlots = activityPrefSlots;
+  let prevPeerOnlyMode = peerOnlyMode;
+
+  // Track the most recent non-zero activity slot count while peer-only mode is disabled.
+  $: if (!peerOnlyMode && activityPrefSlots > 0) {
+    lastActivityPrefSlots = activityPrefSlots;
+  }
+
+  // When peer-only mode toggles, force activity slots to zero and restore on exit.
+  $: if (peerOnlyMode !== prevPeerOnlyMode) {
+    if (peerOnlyMode) {
+      if (activityPrefSlots > 0) {
+        lastActivityPrefSlots = activityPrefSlots;
+      }
+      activityPrefSlots = 0;
+    } else if (activityPrefSlots === 0 && lastActivityPrefSlots > 0) {
+      activityPrefSlots = lastActivityPrefSlots;
+    }
+    prevPeerOnlyMode = peerOnlyMode;
+  }
   let state: "idle" | "running" | "done" = "idle";
   let error = "";
   const doPrefs = async () => {
     state = "running";
     try {
-      await GoogleAppsScript.setupPreferencesSheet(nactivities, npeers);
+      await GoogleAppsScript.setupPreferencesSheet(activityPrefSlots, npeers);
     } catch (e) {
       error = e;
     }
@@ -40,7 +62,12 @@
   const addMockData = async () => {
     state = "running";
     try {
-      await GoogleAppsScript.addMockData(nactivities, npeers, 400, 30);
+      await GoogleAppsScript.addMockData(
+        activityPrefSlots,
+        npeers,
+        400,
+        activityCount
+      );
     } catch (e) {
       error = e;
     }
@@ -57,10 +84,27 @@
       <input type="number" min="1" max="10" bind:value={npeers} />
     </FormItem>
     <FormItem>
-      <span slot="label"># Activities</span>
-      <input type="number" min="1" max="10" bind:value={nactivities} />
+      <span slot="label"># Activity Pref Slots</span>
+      <input
+        type="number"
+        min="0"
+        max="10"
+        bind:value={activityPrefSlots}
+        disabled={peerOnlyMode}
+      />
     </FormItem>
   </div>
+  <FormItem>
+    <Checkbox bind:checked={peerOnlyMode}>Peer-only mode (ignore activities)</Checkbox>
+    <p slot="after">
+      When enabled, students won't register activity preferences—only peer
+      preferences are gathered.
+    </p>
+  </FormItem>
+  <FormItem>
+    <span slot="label"># Activities / Cabins</span>
+    <input type="number" min="1" max="200" bind:value={activityCount} />
+  </FormItem>
   <FormItem>
     <Button disabled={state == "running"} primary on:click={doActivities}>
       Setup Activities Sheet!

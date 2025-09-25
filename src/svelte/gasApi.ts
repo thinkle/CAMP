@@ -46,7 +46,7 @@ export const GoogleAppsScript = {
       });
     },
 
-     readBuildData(preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): Promise<Partial<import("../types").ScheduleInfo>[]> {
+     readBuildData(preferenceData: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").PreferenceData): Promise<Partial<import("../types").ScheduleInfo>[]> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: Partial<import("../types").ScheduleInfo>[]) => resolve(result))
@@ -55,7 +55,7 @@ export const GoogleAppsScript = {
       });
     },
 
-     writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): Promise<void> {
+     writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").PreferenceData): Promise<void> {
       return new Promise((resolve, reject) => {
         google.script.run
           .withSuccessHandler((result: void) => resolve(result))
@@ -73,10 +73,10 @@ export const GoogleAppsScript = {
       });
     },
 
-     readData(keepEmpty: boolean): Promise<{ activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }> {
+     readData(keepEmpty: boolean): Promise<import("../types").PreferenceData> {
       return new Promise((resolve, reject) => {
         google.script.run
-          .withSuccessHandler((result: { activities: import("../types").Activity[]; studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; }) => resolve(result))
+          .withSuccessHandler((result: import("../types").PreferenceData) => resolve(result))
           .withFailureHandler((error: any) => reject(error))
           .readData(keepEmpty);
       });

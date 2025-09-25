@@ -4,6 +4,7 @@ import type {
   Assignment,
   Schedule,
 } from "../../types";
+import { preparePreferencesForScheduling } from "../utils/normalizePreferences";
 
 /**
  * Peer-first fallback approach:
@@ -24,23 +25,26 @@ export function assignByPeer(
   prefs: StudentPreferences[],
   activities: Activity[]
 ): Schedule {
-  // Build a quick capacity usage map: activity -> usedCount
+  const { studentPreferences } = preparePreferencesForScheduling(
+    prefs,
+    activities
+  );
+
   const capacityMap = new Map<string, number>();
-  for (const a of activities) {
-    capacityMap.set(a.activity, 0);
+  const totalCapacity = new Map<string, number>();
+  for (const activity of activities) {
+    capacityMap.set(activity.activity, 0);
+    totalCapacity.set(activity.activity, activity.capacity);
   }
 
-  // Track final assignment: student -> activity
   const assignedMap = new Map<string, string>();
 
-  // Pre-sort each student's peer and activity arrays descending by weight
-  for (const student of prefs) {
+  for (const student of studentPreferences) {
     student.peer.sort((a, b) => b.weight - a.weight);
     student.activity.sort((a, b) => b.weight - a.weight);
   }
 
-  // Iterate students in the given order
-  for (const student of prefs) {
+  for (const student of studentPreferences) {
     if (assignedMap.has(student.identifier)) {
       continue; // already assigned from some earlier step
     }
@@ -58,9 +62,7 @@ export function assignByPeer(
 
       const peerActivity = assignedMap.get(peerId)!;
       const used = capacityMap.get(peerActivity)!;
-      const totalCap = activities.find(
-        (a) => a.activity === peerActivity
-      )!.capacity;
+      const totalCap = totalCapacity.get(peerActivity)!;
       if (used < totalCap) {
         // We can join the peer's activity
         assignedMap.set(student.identifier, peerActivity);
@@ -75,12 +77,10 @@ export function assignByPeer(
       for (const actPref of student.activity) {
         const actName = actPref.activity;
         if (!capacityMap.has(actName)) {
-          throw new Error(`Unknown activity: ${actName}`);
+          continue;
         }
         const used = capacityMap.get(actName)!;
-        const totalCap = activities.find(
-          (a) => a.activity === actName
-        )!.capacity;
+        const totalCap = totalCapacity.get(actName)!;
         if (used < totalCap) {
           assignedMap.set(student.identifier, actName);
           capacityMap.set(actName, used + 1);
@@ -91,9 +91,18 @@ export function assignByPeer(
 
       // 3) If still not assigned, we have no valid peer or activity preference
       if (!assigned) {
-        throw new Error(
-          `No available activities for student: ${student.identifier}`
+        const fallback = activities.find(
+          (activity) =>
+            (capacityMap.get(activity.activity) ?? 0) < activity.capacity
         );
+        if (!fallback) {
+          throw new Error(
+            `No available activities for student: ${student.identifier}`
+          );
+        }
+        const used = capacityMap.get(fallback.activity) ?? 0;
+        assignedMap.set(student.identifier, fallback.activity);
+        capacityMap.set(fallback.activity, used + 1);
       }
     }
   }

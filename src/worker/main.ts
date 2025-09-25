@@ -14,7 +14,9 @@ import type {
   StudentPreferences,
   ScheduleInfo,
   WorkerMessage,
+  ScoringOptions,
 } from "../types";
+import { DEFAULT_SCORING_OPTIONS } from "../types";
 
 let running;
 
@@ -34,6 +36,7 @@ async function improveForever(
   schedule: ScheduleInfo,
   prefs: StudentPreferences[],
   activities: Activity[],
+  scoringOptions: ScoringOptions,
   stopAfter = 10,
   existingSet: Set<string> | null
 ) {
@@ -47,7 +50,13 @@ async function improveForever(
   while (running && (!stopAfter || rounds < stopAfter)) {
     rounds++;
     try {
-      let improved = improveSchedule(schedule.schedule, prefs, activities);
+      let improved = improveSchedule(
+        schedule.schedule,
+        prefs,
+        activities,
+        undefined,
+        scoringOptions
+      );
       let alg = "";
       if (schedule.alg.endsWith("improve")) {
         alg = schedule.alg;
@@ -59,7 +68,8 @@ async function improveForever(
         prefs,
         activities,
         schedule.alg,
-        schedule.generation + 1
+        schedule.generation + 1,
+        scoringOptions
       );
       if (improvedInfo.score > schedule.score) {
         schedule = improvedInfo;
@@ -105,12 +115,19 @@ async function generateStarters(
   prefs: StudentPreferences[],
   activities: Activity[],
   rounds: number,
-  algs: string[]
+  algs: string[],
+  scoringOptions: ScoringOptions
 ) {
   postMessage({ type: "started", message: "Started generating schedules" });
   running = true;
   let i = 0;
-  for (let scheduleInfo of generate(prefs, activities, rounds, algs)) {
+  for (let scheduleInfo of generate(
+    prefs,
+    activities,
+    rounds,
+    algs,
+    scoringOptions
+  )) {
     i++;
     postMessage({
       type: "generated",
@@ -140,7 +157,8 @@ async function evolveGenerations(
   prefs: StudentPreferences[],
   activities: Activity[],
   rounds: number | null,
-  existingSet: Set<string> | null
+  existingSet: Set<string> | null,
+  scoringOptions: ScoringOptions
 ) {
   running = true;
   postMessage({
@@ -164,7 +182,8 @@ async function evolveGenerations(
       prefs,
       activities,
       10,
-      existingSet
+      existingSet,
+      scoringOptions
     )) {
       nextGen.push(offspring);
       postMessage({
@@ -206,6 +225,8 @@ function selectSurvivors(offspring: ScheduleInfo[], targetSize: number) {
 self.onmessage = (e) => {
   const { type, payload } = e.data; // Extract the message type and payload
   running = true; // Ensure the worker is ready to run on every new message
+  const scoringOptions: ScoringOptions =
+    (payload && payload.scoringOptions) || DEFAULT_SCORING_OPTIONS;
 
   try {
     switch (type) {
@@ -215,6 +236,7 @@ self.onmessage = (e) => {
           payload.schedule,
           payload.prefs,
           payload.activities,
+          scoringOptions,
           payload.stopAfter,
           payload.existingSet
         );
@@ -226,7 +248,8 @@ self.onmessage = (e) => {
           payload.prefs,
           payload.activities,
           payload.rounds,
-          payload.algs
+          payload.algs,
+          scoringOptions
         );
         break;
 
@@ -237,7 +260,8 @@ self.onmessage = (e) => {
           payload.prefs,
           payload.activities,
           payload.rounds,
-          payload.existingSet
+          payload.existingSet,
+          scoringOptions
         );
         break;
 

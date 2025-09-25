@@ -2,12 +2,18 @@ import { assignByActivity } from "../heuristics/activityFirstHeuristic";
 import { assignByPeer } from "../heuristics/peerFirstHeuristic";
 import { assignByPriority } from "../heuristics/assignByPriority";
 import { assignByCohorts } from "../heuristics/assignByCohorts";
+import { assignMutualPeersFirst } from "../heuristics/mutualPeerFirstHeuristic";
+import { assignFindAFriend } from "../heuristics/findAFriendHeuristic";
+import { assignAvoidForbidden } from "../heuristics/forbiddenAwareHeuristic";
+import { assignPenaltyFirst } from "../heuristics/penaltyFirstHeuristic";
 import type {
   Schedule,
   Activity,
   StudentPreferences,
   ScheduleInfo,
+  ScoringOptions,
 } from "../../types";
+import { DEFAULT_SCORING_OPTIONS } from "../../types";
 import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { scheduleToId } from "./scheduleSaver";
 import { createScheduleInfo } from "./scheduleInfo";
@@ -68,6 +74,10 @@ const assignFunctions = [
   assignByMostConstrained,
   assignByActivity,
   assignByPeer,
+  assignMutualPeersFirst,
+  assignFindAFriend,
+  assignAvoidForbidden,
+  assignPenaltyFirst,
   assignByPriority,
   assignByCohortMinSize,
   assignByCohortMedianSize,
@@ -81,6 +91,10 @@ export const algNames = [
   "Most Constrained",
   "Activity First",
   "Peer First",
+  "Mutual Peer First",
+  "Find a Friend",
+  "Avoid Forbidden",
+  "Penalty First",
   "Priority",
   "Cohort Min Size",
   "Cohort Median Size",
@@ -93,6 +107,10 @@ const nameToFunction = {
   "Most Constrained": assignByMostConstrained,
   "Activity First": assignByActivity,
   "Peer First": assignByPeer,
+  "Mutual Peer First": assignMutualPeersFirst,
+  "Find a Friend": assignFindAFriend,
+  "Avoid Forbidden": assignAvoidForbidden,
+  "Penalty First": assignPenaltyFirst,
   Priority: assignByPriority,
   "Cohort Min Size": assignByCohortMinSize,
   "Cohort Median Size": assignByCohortMedianSize,
@@ -110,7 +128,8 @@ export function* generate(
   prefs: StudentPreferences[],
   activities: Activity[],
   nrounds: number,
-  algs: string[]
+  algs: string[] | undefined,
+  scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
 ) {
   let existingIds = new Set();
   let myAssignFunctions = assignFunctions;
@@ -131,7 +150,8 @@ export function* generate(
           prefs,
           activities,
           functionsToName.get(alg),
-          0
+          0,
+          scoringOptions
         );
         if (!existingIds.has(info.id)) {
           existingIds.add(info.id);
@@ -151,13 +171,20 @@ export const generateSchedulesFromHeuristics = (
   nrounds: number,
   prefs: StudentPreferences[],
   activities: Activity[],
-  schedules: ScheduleInfo[] = []
+  schedules: ScheduleInfo[] = [],
+  scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
 ) => {
   let existingIds = new Set();
   for (let s of schedules) {
     existingIds.add(s.id);
   }
-  for (let scheduleInfo of generate(prefs, activities, 10)) {
+  for (let scheduleInfo of generate(
+    prefs,
+    activities,
+    10,
+    undefined,
+    scoringOptions
+  )) {
     if (!existingIds.has(scheduleInfo.id)) {
       existingIds.add(scheduleInfo.id);
       schedules.push(scheduleInfo);

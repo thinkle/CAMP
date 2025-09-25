@@ -33,6 +33,29 @@ export type ScheduleInfo = {
   id: string;
 };
 
+export type ScoringOptions = {
+  mutualPeerMultiplier: number;
+  nonMutualPeerMultiplier: number;
+  noPeerPenalty: number;
+  noActivityPenalty: number;
+};
+
+export const DEFAULT_SCORING_OPTIONS: ScoringOptions = {
+  mutualPeerMultiplier: 1,
+  nonMutualPeerMultiplier: 0.5,
+  noPeerPenalty: 0,
+  noActivityPenalty: 0,
+};
+
+export type PreferenceMode = "activities-and-peers" | "peer-only";
+
+export type PreferenceData = {
+  studentPreferences: StudentPreferences[];
+  activities: Activity[];
+  preferenceMode: PreferenceMode;
+  scoringOptions: ScoringOptions;
+};
+
 export type WorkerMessage = {
   complete?: boolean;
   type:

@@ -3,7 +3,9 @@ import type {
   Activity,
   StudentPreferences,
   ScheduleInfo,
+  ScoringOptions,
 } from "../../types";
+import { DEFAULT_SCORING_OPTIONS } from "../../types";
 import { computeHappinessForStudent } from "../scoring/computeHappinessForStudent";
 import { scoreSchedule } from "../scoring/scoreSchedule";
 import { getCohorts } from "../heuristics/assignByCohorts";
@@ -34,9 +36,14 @@ const getScheduleData = (
 const improveLeastHappyWithSwaps = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
-  activities: Activity[]
+  activities: Activity[],
+  scoringOptions: ScoringOptions
 ): { schedule: Schedule; improved: boolean } => {
-  const currentScore = scoreSchedule(schedule, studentPreferences);
+  const currentScore = scoreSchedule(
+    schedule,
+    studentPreferences,
+    scoringOptions
+  );
   let data = getScheduleData(schedule, studentPreferences);
 
   // Sort students by happiness (ascending)
@@ -86,7 +93,11 @@ const improveLeastHappyWithSwaps = (
             : assignment
         );
 
-        const newScore = scoreSchedule(newSchedule, studentPreferences);
+        const newScore = scoreSchedule(
+          newSchedule,
+          studentPreferences,
+          scoringOptions
+        );
         if (newScore > currentScore) {
           return { schedule: newSchedule, improved: true };
         }
@@ -122,7 +133,11 @@ const improveLeastHappyWithSwaps = (
           return assignment;
         });
 
-        const newScore = scoreSchedule(newSchedule, studentPreferences);
+        const newScore = scoreSchedule(
+          newSchedule,
+          studentPreferences,
+          scoringOptions
+        );
         if (newScore > currentScore) {
           return { schedule: newSchedule, improved: true };
         }
@@ -179,7 +194,8 @@ const mutateSchedule = (
 const improveByMovingCohorts = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
-  activities: Activity[]
+  activities: Activity[],
+  scoringOptions: ScoringOptions
 ): { schedule: Schedule; improved: boolean } => {
   // Step 1: Identify students who are not in their top choice but could move as a cohort
   const studentsNeedingMoves = studentPreferences.filter((student) => {
@@ -231,8 +247,15 @@ const improveByMovingCohorts = (
           : assignment
       );
 
-      let newScore = scoreSchedule(newSchedule, studentPreferences);
-      if (newScore > scoreSchedule(schedule, studentPreferences)) {
+      let newScore = scoreSchedule(
+        newSchedule,
+        studentPreferences,
+        scoringOptions
+      );
+      if (
+        newScore >
+        scoreSchedule(schedule, studentPreferences, scoringOptions)
+      ) {
         return { schedule: newSchedule, improved: true };
       }
     }
@@ -245,12 +268,14 @@ export const improveSchedule = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[],
-  maxIterations = 10
+  maxIterations = 10,
+  scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
 ): Schedule => {
   let { schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
     schedule,
     studentPreferences,
-    activities
+    activities,
+    scoringOptions
   );
 
   let iterations = 1;
@@ -262,7 +287,8 @@ export const improveSchedule = (
       ({ schedule: newSchedule, improved } = improveByMovingCohorts(
         schedule,
         studentPreferences,
-        activities
+        activities,
+        scoringOptions
       ));
 
       if (!improved) {
@@ -272,7 +298,8 @@ export const improveSchedule = (
       ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
         schedule,
         studentPreferences,
-        activities
+        activities,
+        scoringOptions
       ));
     }
 
@@ -281,7 +308,8 @@ export const improveSchedule = (
       ({ schedule: newSchedule, improved } = improveLeastHappyWithSwaps(
         newSchedule,
         studentPreferences,
-        activities
+        activities,
+        scoringOptions
       ));
 
       // Reset strategy to cohort-based moves first

@@ -20,9 +20,8 @@
   } from "contain-css-svelte";
 
   import type {
-    StudentPreferences,
+    PreferenceData,
     Schedule,
-    Activity,
     ScheduleInfo,
     WorkerMessage,
   } from "./../types.ts";
@@ -31,13 +30,22 @@
   import { WorkerPool } from "./lib/workerPool";
   import { idToSchedule, scoreSchedule } from "../scheduler";
   import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
+  import { preparePreferencesForScheduling } from "../scheduler/utils/normalizePreferences";
 
   let clustering = false; // don't duplicate clustering requests...
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
+
+  let schedulerData: PreferenceData | null = null;
+  $: schedulerData = data
+    ? {
+        ...data,
+        studentPreferences: preparePreferencesForScheduling(
+          data.studentPreferences,
+          data.activities
+        ).studentPreferences,
+      }
+    : null;
 
   let worker: Worker | null = null;
 
@@ -199,13 +207,15 @@
   };
 
   function evolveScheduleGroup(group: ScheduleInfo[]) {
+    if (!schedulerData) return;
     if (group.length > 2) {
       worker.postMessage({
         type: "evolve",
         payload: {
           population: group,
-          prefs: data.studentPreferences,
-          activities: data.activities,
+          prefs: schedulerData.studentPreferences,
+          activities: schedulerData.activities,
+          scoringOptions: schedulerData.scoringOptions,
           existingSet,
           rounds,
         },
@@ -217,12 +227,14 @@
     if (!worker) {
       await initializeWorker();
     }
+    if (!schedulerData) return;
     worker.postMessage({
       type: "improve",
       payload: {
         schedule: schedule,
-        prefs: data.studentPreferences,
-        activities: data.activities,
+        prefs: schedulerData.studentPreferences,
+        activities: schedulerData.activities,
+        scoringOptions: schedulerData.scoringOptions,
         stopAfter: null,
         existingSet,
       },
@@ -266,7 +278,11 @@
                   data.studentPreferences,
                   data.activities
                 );
-                s.score = scoreSchedule(s.schedule, data.studentPreferences);
+                s.score = scoreSchedule(
+                  s.schedule,
+                  data.studentPreferences,
+                  data.scoringOptions
+                );
               }
             }
             schedules = scheduleInfo;
@@ -308,7 +324,7 @@
       <b>{schedules.length} Total Schedules ({clusterMap.size} clusters)</b>
       {#if schedules.length}
         <Clusterer
-          {data}
+          data={schedulerData}
           {schedules}
           {clusterMap}
           {setClusterMap}
@@ -322,14 +338,14 @@
         <input type="number" bind:value={rounds} />
       </FormItem>
       <ScheduleGenerator
-        {data}
+        data={schedulerData}
         {worker}
         {initializeWorker}
         setMessage={setWorkerMessage}
         {rounds}
       />
       <ScheduleEvolver
-        {data}
+        data={schedulerData}
         {worker}
         setMessage={setWorkerMessage}
         {rounds}
@@ -356,7 +372,7 @@
     </div>
     <div class="content" class:visible={tab == "explore"}>
       <BuildExplorer
-        {data}
+        data={schedulerData}
         {schedules}
         {bestSchedule}
         {clusterMap}

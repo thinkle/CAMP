@@ -7,6 +7,7 @@ import type {
   StudentPreferences,
   Activity,
   ScheduleInfo,
+  ScoringOptions,
 } from "../../types";
 import { improveSchedule } from "./improveSchedule";
 import { createScheduleInfo } from "./scheduleInfo";
@@ -16,7 +17,8 @@ export function* createCrosses(
   studentPreferences: StudentPreferences[],
   activities: Activity[],
   rounds: number,
-  existingSet: Set<string> | null
+  existingSet: Set<string> | null,
+  scoringOptions: ScoringOptions
 ) {
   if (!existingSet) {
     existingSet = new Set(population.map((s) => s.id));
@@ -29,7 +31,13 @@ export function* createCrosses(
         studentPreferences,
         activities
       );
-      merged = improveSchedule(merged, studentPreferences, activities, rounds);
+      merged = improveSchedule(
+        merged,
+        studentPreferences,
+        activities,
+        rounds,
+        scoringOptions
+      );
 
       const mergedAlgName = getMergedName(pair[0], pair[1]);
       let mergedInfo = createScheduleInfo(
@@ -37,7 +45,8 @@ export function* createCrosses(
         studentPreferences,
         activities,
         mergedAlgName,
-        pair[0].generation + 1
+        pair[0].generation + 1,
+        scoringOptions
       );
       if (existingSet.has(mergedInfo.id)) {
         console.log("crossbreed ignoring dup");

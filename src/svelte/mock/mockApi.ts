@@ -1,5 +1,12 @@
 import { generateAllMockData } from "../../scheduler/mocks/mockDataGenerator";
 import workerText from "../../../dist/worker.js.html?raw";
+import type {
+  Activity,
+  StudentPreferences,
+  PreferenceData,
+  PreferenceMode,
+} from "../../types";
+import { DEFAULT_SCORING_OPTIONS } from "../../types";
 
 export function setupPreferencesSheet(
   activity_preferences: number,
@@ -23,10 +30,7 @@ export function test(): string {
   return "hello";
 }
 
-export function readData(): {
-  activities: Activity[];
-  studentPreferences: StudentPreferences[];
-} {
+export function readData(): PreferenceData {
   const { activityNames, activityCapacities, rawStudents } =
     generateAllMockData(
       50, // nactivities
@@ -54,7 +58,14 @@ export function readData(): {
     })),
   }));
 
-  return { activities, studentPreferences };
+  const preferenceMode: PreferenceMode = "activities-and-peers";
+
+  return {
+    activities,
+    studentPreferences,
+    preferenceMode,
+    scoringOptions: DEFAULT_SCORING_OPTIONS,
+  };
 }
 
 export function readBuildData(): import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[] {

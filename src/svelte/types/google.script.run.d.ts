@@ -9,8 +9,8 @@ declare namespace google.script {
   getWorkerScript(): void;
   getUniversalPrefsSheet(): void;
   writeSchedule(schedule: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Schedule): void;
-  readBuildData(preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
-  writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: { studentPreferences: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").StudentPreferences[]; activities: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").Activity[]; }): void;
+  readBuildData(preferenceData: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").PreferenceData): void;
+  writeBuildData(schedules: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").ScheduleInfo[], preferenceData: import("/Users/thinkle/BackedUpProjects/gas/CAMP/src/types").PreferenceData): void;
   clearBuildData(): void;
   readData(keepEmpty: boolean): void;
   addMockData(activityPrefs: number, peerPrefs: number, nstudents: number, nactivities: number): void;

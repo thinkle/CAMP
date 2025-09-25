@@ -2,17 +2,13 @@
   import { Button, Select, FormItem, Card, Column } from "contain-css-svelte";
 
   import type {
-    StudentPreferences,
-    Activity,
+    PreferenceData,
     ScheduleInfo,
     ClusterInfo,
   } from "./../types.ts";
   import { compareSchedules } from "../scheduler/hillclimbing/compareSchedules.js";
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
 
   export let worker: Worker | null = null;
   export let setMessage: (message: string) => void;

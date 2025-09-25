@@ -20,7 +20,8 @@
     "build-worker": "vite build --config vite.config.worker.ts",
     "build-gas-api": "create-client-api src/gas/api.ts src/svelte/gasApi.ts",
     "build-types": "add-google-run-types src/gas/api.ts src/svelte/types/google.script.run.d.ts",
-    "build-mocks": "add-google-run-mocks src/gas/api.ts src/svelte/mock/mockApi.ts"
+    "build-mocks": "add-google-run-mocks src/gas/api.ts src/svelte/mock/mockApi.ts",
+    "bench:heuristics": "vitest run src/benchmarks/heuristics.bench.ts"
   },
   "devDependencies": {
     "@google/clasp": "^2.4.2",

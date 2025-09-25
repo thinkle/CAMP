@@ -3,8 +3,9 @@
 
   import DataPreview from "./DataPreview.svelte";
 
-  import type { StudentPreferences, Activity } from "./../types.ts";
+  import type { PreferenceData, PreferenceMode } from "./../types.ts";
   import SetupSheets from "./SetupSheets.svelte";
+  import { buildLabel } from "../buildInfo";
 
   import { GoogleAppsScript } from "./gasApi";
   import {
@@ -20,23 +21,13 @@
   import "contain-css-svelte/vars/themes/typography-airy.css";
   import { onMount } from "svelte";
 
-  let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  let data: PreferenceData | null = null;
+  let preferenceMode: PreferenceMode | null = null;
 
   const readData = async () => {
     loadingFromSheets = true;
     data = await GoogleAppsScript.readData(keepEmpty);
-    let ogLength = data.studentPreferences.length;
-    data.studentPreferences = data.studentPreferences.filter(
-      (sp) => sp.activity.length > 0
-    );
-    console.log(
-      "Filtered out",
-      ogLength - data.studentPreferences.length,
-      "students with no activities"
-    );
+    preferenceMode = data.preferenceMode;
     loadingFromSheets = false;
   };
   let loadingFromSheets = false;
@@ -73,17 +64,25 @@
       {#if loadingFromSheets}
         <Progress state="inprogress">Loading data from Google Sheets</Progress>
       {/if}
+      {#if data}
+        <p class="gray">
+          Scheduling mode:
+          {preferenceMode === "peer-only"
+            ? "Peer-only (ignore activity preferences)"
+            : "Activities + Peers"}
+        </p>
+      {/if}
       <DataPreview {data}></DataPreview>
     </details>
     <details>
       <summary>Build Schedule</summary>
-      <WorkerManager {data}></WorkerManager>
+  <WorkerManager {data}></WorkerManager>
     </details>
   </Accordion>
 
   <!-- <SchedulePreview {data} {schedule}></SchedulePreview> -->
 
-  <div>
+  <div class="footer">
     <span class="gray">
       Created with
       <a
@@ -95,6 +94,7 @@
       by
       <a target="_blank" href="https://www.tomhinkle.net"> Tom Hinkle </a>
     </span>
+    <span class="gray build">Build {buildLabel}</span>
   </div>
 </Container>
 
@@ -106,5 +106,14 @@
   }
   h1 {
     text-align: center !important;
+  }
+  .footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .build {
+    font-size: 0.7rem;
   }
 </style>

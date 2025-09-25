@@ -1,10 +1,5 @@
 import { idToSchedule } from "../scheduler";
-import type {
-  Activity,
-  Schedule,
-  ScheduleInfo,
-  StudentPreferences,
-} from "../types";
+import type { Activity, PreferenceData, Schedule, ScheduleInfo } from "../types";
 import { readData } from "./readData";
 import {
   getBuildSheet,
@@ -44,10 +39,7 @@ export function readRawBuildData(): {
   return schedules;
 }
 
-export function readBuildData(preferenceData: {
-  studentPreferences: StudentPreferences[];
-  activities: Activity[];
-}): Partial<ScheduleInfo>[] {
+export function readBuildData(preferenceData: PreferenceData): Partial<ScheduleInfo>[] {
   let schedules: Partial<ScheduleInfo>[] = [];
   let targetHash = computeHash(preferenceData);
   console.log("Looking for hash", targetHash);
@@ -65,10 +57,7 @@ export function readBuildData(preferenceData: {
   return schedules;
 }
 
-function computeHash(preferenceData: {
-  studentPreferences: StudentPreferences[];
-  activities: Activity[];
-}) {
+function computeHash(preferenceData: PreferenceData) {
   // 1) Make local copies to avoid mutating the original data
   const studentPrefs = [...preferenceData.studentPreferences];
   const activities = [...preferenceData.activities];
@@ -131,6 +120,8 @@ function computeHash(preferenceData: {
   const finalStructure = {
     students: canonicalData, // numeric representation
     activities: activityCaps, // numeric representation
+    mode: preferenceData.preferenceMode,
+    scoring: preferenceData.scoringOptions,
   };
 
   // 7) Convert to JSON. Because we've sorted all arrays and used numeric indexes,
@@ -156,10 +147,7 @@ function computeHash(preferenceData: {
 
 export function writeBuildData(
   schedules: ScheduleInfo[],
-  preferenceData: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  }
+  preferenceData: PreferenceData
 ) {
   let hash = computeHash(preferenceData);
   let sheet = getBuildSheet();

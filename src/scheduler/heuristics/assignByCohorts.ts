@@ -155,18 +155,16 @@ export function assignByCohorts(
   // 4) Assign each cohort to the best feasible activity
   const schedule: Assignment[] = [];
   for (const cohort of cohorts) {
-    // Sum preference for each activity
     const scores = new Map<string, number>();
     for (const act of activities) {
       scores.set(act.activity, 0);
     }
     for (const member of cohort) {
-      const map = studentActMap.get(member)!;
+      const map = studentActMap.get(member) ?? new Map();
       for (const [actName, w] of map.entries()) {
-        scores.set(actName, scores.get(actName)! + w);
+        scores.set(actName, (scores.get(actName) ?? 0) + w);
       }
     }
-    // Sort by descending sum
     const sortedActs = [...scores.entries()].sort((a, b) => b[1] - a[1]);
 
     let assigned = false;
@@ -174,7 +172,6 @@ export function assignByCohorts(
       const used = capMap.get(actName)!;
       const totalCap = activities.find((a) => a.activity === actName)!.capacity;
       if (used + cohort.length <= totalCap) {
-        // seat entire cohort here
         capMap.set(actName, used + cohort.length);
         for (const studentId of cohort) {
           schedule.push({ student: studentId, activity: actName });
@@ -185,14 +182,40 @@ export function assignByCohorts(
     }
 
     if (!assigned) {
-      /* console.log("We had max size of ", maxCohortSize);
-      console.log("We generated cohorts: ", cohorts);
-      console.log("We had activities: ", activities);
-      console.log("We had prefs: ", prefs); */
-      throw new Error(
-        `Cohort of size ${cohort.length} cannot fit into any activity. 
-         Consider smaller maxCohortSize or splitting logic.`
-      );
+      const remaining = new Set(cohort);
+      for (const [actName] of sortedActs) {
+        const totalCap = activities.find((a) => a.activity === actName)!.capacity;
+        const used = capMap.get(actName)!;
+        const available = totalCap - used;
+        if (available <= 0 || remaining.size === 0) {
+          continue;
+        }
+
+        const candidates = Array.from(remaining).sort((a, b) => {
+          const mapA = studentActMap.get(a);
+          const mapB = studentActMap.get(b);
+          const weightA = mapA?.get(actName) ?? 0;
+          const weightB = mapB?.get(actName) ?? 0;
+          return weightB - weightA;
+        });
+
+        const toAssign = candidates.slice(0, available);
+        if (toAssign.length === 0) {
+          continue;
+        }
+
+        for (const studentId of toAssign) {
+          schedule.push({ student: studentId, activity: actName });
+          remaining.delete(studentId);
+        }
+        capMap.set(actName, used + toAssign.length);
+      }
+
+      if (remaining.size > 0) {
+        throw new Error(
+          `Cohort of size ${cohort.length} cannot fit into any activity even after splitting.`
+        );
+      }
     }
   }
 

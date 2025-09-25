@@ -20,18 +20,14 @@
   } from "contain-css-svelte";
 
   import type {
-    StudentPreferences,
-    Activity,
+    PreferenceData,
     ScheduleInfo,
     WorkerMessage,
     Schedule,
   } from "./../types.ts";
   import type { FamilyClusters } from "../scheduler/hillclimbing/clusterSchedules";
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
   export let bestSchedule: ScheduleInfo;
   export let schedules: ScheduleInfo[] = [];
   export let scheduleView: ScheduleInfo[] = [

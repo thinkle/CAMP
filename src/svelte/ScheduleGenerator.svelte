@@ -1,15 +1,12 @@
 <script lang="ts">
   import { Button, Select, FormItem } from "contain-css-svelte";
 
-  import type { StudentPreferences, Activity } from "./../types.ts";
+  import type { PreferenceData } from "./../types.ts";
   import { algNames } from "../scheduler/hillclimbing/generator";
 
   let generatorAlgs: string[] | undefined;
 
-  export let data: {
-    studentPreferences: StudentPreferences[];
-    activities: Activity[];
-  };
+  export let data: PreferenceData | null = null;
 
   export let worker: Worker | null = null;
   export let initializeWorker: () => Promise<void>;
@@ -21,6 +18,7 @@
     if (!worker) {
       await initializeWorker();
     }
+    if (!data) return;
     worker.postMessage({
       type: "generate",
       payload: {
@@ -28,6 +26,7 @@
         activities: data.activities,
         rounds: rounds,
         algs: generatorAlgs,
+        scoringOptions: data.scoringOptions,
       },
     });
     setMessage("Generating schedules...");

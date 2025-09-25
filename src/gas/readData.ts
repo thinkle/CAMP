@@ -3,13 +3,18 @@ import type {
   PeerPreference,
   StudentPreferences,
   Activity,
+  PreferenceMode,
+  PreferenceData,
+  ScoringOptions,
 } from "../types";
+import { DEFAULT_SCORING_OPTIONS } from "../types";
 
 // Import sheet getters from your setupSheets module:
 import {
   getActivitiesSheet,
   getPreferencesSheet,
   getUniversalPrefsData,
+  getScoringSettingsSheet,
   ID_HEADER,
   IDCOL,
   OVERRIDE_COL,
@@ -22,10 +27,7 @@ import {
  *
  * @returns {{ activities: Activity[], studentPreferences: StudentPreferences[] }}
  */
-export function readData(keepEmpty = false): {
-  activities: Activity[];
-  studentPreferences: StudentPreferences[];
-} {
+export function readData(keepEmpty = false): PreferenceData {
   // --------------------------------------
   // 1. Read and parse data from Activities sheet
   // --------------------------------------
@@ -51,13 +53,18 @@ export function readData(keepEmpty = false): {
   const prefValues = preferencesSheet.getDataRange().getValues();
   if (prefValues.length === 0) {
     // No data found on Preferences sheet
-    return { activities, studentPreferences: [] };
+    return {
+      activities,
+      studentPreferences: [],
+      preferenceMode: "activities-and-peers",
+    };
   }
 
   // We’ll use the first row as column headers
   const headers = prefValues[0];
 
   let studentPreferences: StudentPreferences[] = [];
+  let sawActivityPreferenceColumn = false;
 
   // Start reading from row 2 (index = 1)
   for (let row = 1; row < prefValues.length; row++) {
@@ -111,6 +118,7 @@ export function readData(keepEmpty = false): {
         peerPrefs.push({ peer: String(preferenceName), weight });
       } else if (preferenceName) {
         // Otherwise, treat it as an activity preference
+        sawActivityPreferenceColumn = true;
         activityPrefs.push({ activity: String(preferenceName), weight });
       }
 
@@ -132,6 +140,10 @@ export function readData(keepEmpty = false): {
     }
   }
 
+  const preferenceMode: PreferenceMode = sawActivityPreferenceColumn
+    ? "activities-and-peers"
+    : "peer-only";
+
   if (!keepEmpty) {
     studentPreferences = studentPreferences.filter(
       (student) => student.activity.length > 0 || student.peer.length > 0
@@ -145,19 +157,53 @@ export function readData(keepEmpty = false): {
     student.peer = student.peer.filter((p) => validIdentifiers.has(p.peer));
   }
 
-  const universalPreferences = getUniversalPrefsData();
-  // Add universal preferences to each student
-  for (let student of studentPreferences) {
-    for (let pref of universalPreferences) {
-      if (pref.activity) {
-        if (student.activity.find((a) => a.activity === pref.activity)) {
-          continue;
-        } else {
-          student.activity.push({ ...pref });
+  if (preferenceMode !== "peer-only") {
+    const universalPreferences = getUniversalPrefsData();
+    // Add universal preferences to each student
+    for (let student of studentPreferences) {
+      for (let pref of universalPreferences) {
+        if (pref.activity) {
+          if (student.activity.find((a) => a.activity === pref.activity)) {
+            continue;
+          } else {
+            student.activity.push({ ...pref });
+          }
         }
       }
     }
   }
 
-  return { activities, studentPreferences };
+  const scoringOptions = readScoringSettings();
+
+  return { activities, studentPreferences, preferenceMode, scoringOptions };
+}
+
+function readScoringSettings(): ScoringOptions {
+  const sheet = getScoringSettingsSheet();
+  const data = sheet.getDataRange().getValues();
+  const map = new Map<string, string>();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const key = row[0];
+    const value = row[1];
+    if (key) {
+      map.set(String(key), String(value));
+    }
+  }
+
+  const toNumber = (key: keyof ScoringOptions): number => {
+    const raw = map.get(key);
+    if (raw === undefined || raw === "") {
+      return DEFAULT_SCORING_OPTIONS[key];
+    }
+    const parsed = Number(raw);
+    return isNaN(parsed) ? DEFAULT_SCORING_OPTIONS[key] : parsed;
+  };
+
+  return {
+    mutualPeerMultiplier: toNumber("mutualPeerMultiplier"),
+    nonMutualPeerMultiplier: toNumber("nonMutualPeerMultiplier"),
+    noPeerPenalty: toNumber("noPeerPenalty"),
+    noActivityPenalty: toNumber("noActivityPenalty"),
+  };
 }
