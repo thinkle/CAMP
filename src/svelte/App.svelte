@@ -76,7 +76,7 @@
     </details>
     <details>
       <summary>Build Schedule</summary>
-  <WorkerManager {data}></WorkerManager>
+      <WorkerManager {data}></WorkerManager>
     </details>
   </Accordion>
 

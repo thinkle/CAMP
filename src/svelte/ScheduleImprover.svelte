@@ -64,7 +64,7 @@
     compareSchedules(mostRecentSchedule.schedule, bestSchedule.schedule);
 </script>
 
-<details>
+<details on:click|stopPropagation>
   <summary>Improve</summary>
 
   <Button disabled={schedules.length < 1} on:click={improveAGoodSchedule}

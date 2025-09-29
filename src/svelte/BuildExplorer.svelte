@@ -156,13 +156,16 @@
     if (checked.indexOf(id) > -1) {
       checked = checked.filter((i) => i !== id);
       lastChecked = checked[checked.length - 1];
+      console.log("BuildExplorer: toggleSchedule OFF", id);
     } else {
       checked = [...checked, id];
       lastChecked = id;
+      console.log("BuildExplorer: toggleSchedule ON", id);
     }
   }
 
   let mode: "clusters" | "schedules" = "schedules";
+  console.log("Loading DEBUG MODE BuildExplorer.svelte!!!!");
 </script>
 
 <TabBar>
@@ -252,7 +255,11 @@
         <th>
           <Checkbox
             checked={checked.indexOf(schedule.id) > -1}
-            on:click={() => toggleSchedule(schedule.id)}
+            on:change={() => {
+              console.log("Here we go toggle here we go!", schedule.id);
+              toggleSchedule(schedule.id);
+              console.log("Toggled schedule", schedule.id, checked);
+            }}
           >
             {labels[i]}. {schedule.score}
           </Checkbox>

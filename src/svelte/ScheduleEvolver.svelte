@@ -132,7 +132,7 @@
   }
 </script>
 
-<details>
+<details on:click|stopPropagation>
   <summary>Schedule Evolver</summary>
   <Button
     disabled={schedules.length < 4}

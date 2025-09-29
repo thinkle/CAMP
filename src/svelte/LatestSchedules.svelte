@@ -49,7 +49,7 @@
     compareSchedules(mostRecentSchedule.schedule, bestSchedule.schedule);
 </script>
 
-<details open>
+<details open on:click|stopPropagation>
   <summary>Latest...</summary>
   {#if bestSchedule && mostRecentSchedule}
     <TabBar>

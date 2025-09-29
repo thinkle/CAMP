@@ -39,7 +39,7 @@
   }
 </script>
 
-<details open>
+<details open on:click|stopPropagation>
   <summary>Generate</summary>
   <FormItem>
     <span slot="label">Algorithms to Use</span>
