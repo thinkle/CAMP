@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { Button, Select, FormItem, Card, Column } from "contain-css-svelte";
+  import {
+    Accordion,
+    Button,
+    Select,
+    FormItem,
+    Card,
+    Column,
+  } from "contain-css-svelte";
 
   import type {
     PreferenceData,
@@ -132,7 +139,7 @@
   }
 </script>
 
-<details on:click|stopPropagation>
+<details on:click>
   <summary>Schedule Evolver</summary>
   <Button
     disabled={schedules.length < 4}
