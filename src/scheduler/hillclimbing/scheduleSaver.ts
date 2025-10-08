@@ -1,14 +1,18 @@
 import { Schedule, Activity, StudentPreferences } from "../../types";
 
 /* Create a unique identifier for schedule. IDs should be unique to any given
-schedule and not effected by the order of assignments in the schedule. */
+schedule and not effected by the order of assignments in the schedule. 
+In peer-only mode, the ID should also be invariant to activity permutations
+(swapping which group goes to which activity) since activities are just containers. */
 export const scheduleToId = (
   schedule: Schedule,
-  activities: Activity[]
+  activities: Activity[],
+  isPeerOnlyMode: boolean = false
 ): string => {
   ({ schedule, activities } = normalizeScheduleAndActivities(
     schedule,
-    activities
+    activities,
+    isPeerOnlyMode
   ));
   // Now that we have the schedule in a standard order, we can just map
   // numbers...
@@ -47,12 +51,79 @@ export const idToSchedule = (
 
 function normalizeScheduleAndActivities(
   schedule: Schedule,
-  activities: Activity[]
+  activities: Activity[],
+  isPeerOnlyMode: boolean = false
 ) {
   schedule = schedule.slice();
   activities = activities.slice();
-  // Sort the schedules and activities
-  activities.sort((a, b) => a.activity.localeCompare(b.activity));
-  schedule.sort((a, b) => a.student.localeCompare(b.student));
+
+  if (isPeerOnlyMode) {
+    // In peer-only mode, create a canonical form that's invariant to activity permutations
+    // BUT only within activities of the same capacity (since capacity matters)
+
+    // Group students by activity
+    const activityGroups = new Map<string, string[]>();
+    for (const assignment of schedule) {
+      if (!activityGroups.has(assignment.activity)) {
+        activityGroups.set(assignment.activity, []);
+      }
+      activityGroups.get(assignment.activity)!.push(assignment.student);
+    }
+
+    // Sort students within each group
+    activityGroups.forEach((students) => {
+      students.sort();
+    });
+
+    // Group activities by capacity
+    const activitiesByCapacity = new Map<number, Activity[]>();
+    for (const activity of activities) {
+      if (!activitiesByCapacity.has(activity.capacity)) {
+        activitiesByCapacity.set(activity.capacity, []);
+      }
+      activitiesByCapacity.get(activity.capacity)!.push(activity);
+    }
+
+    // Sort activities within each capacity tier alphabetically
+    activitiesByCapacity.forEach((acts) => {
+      acts.sort((a, b) => a.activity.localeCompare(b.activity));
+    });
+
+    // Build new schedule by capacity tier
+    schedule = [];
+    const sortedCapacities = Array.from(activitiesByCapacity.keys()).sort(
+      (a, b) => a - b
+    );
+
+    for (const capacity of sortedCapacities) {
+      const activitiesInTier = activitiesByCapacity.get(capacity)!;
+
+      // Get groups assigned to activities in this tier and sort canonically by first member
+      const groupsInTier = activitiesInTier
+        .filter((a) => activityGroups.has(a.activity))
+        .map((a) => ({
+          activity: a.activity,
+          students: activityGroups.get(a.activity)!,
+        }))
+        .sort((a, b) => a.students[0].localeCompare(b.students[0]));
+
+      // Reassign canonically sorted groups to alphabetically sorted activities in this tier
+      for (let i = 0; i < groupsInTier.length; i++) {
+        const activity = activitiesInTier[i].activity;
+        for (const student of groupsInTier[i].students) {
+          schedule.push({ student, activity });
+        }
+      }
+    }
+
+    // Re-sort activities and schedule for consistent output
+    activities.sort((a, b) => a.activity.localeCompare(b.activity));
+    schedule.sort((a, b) => a.student.localeCompare(b.student));
+  } else {
+    // Standard mode: activities have meaning, just sort both
+    activities.sort((a, b) => a.activity.localeCompare(b.activity));
+    schedule.sort((a, b) => a.student.localeCompare(b.student));
+  }
+
   return { schedule, activities };
 }
