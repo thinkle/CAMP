@@ -15,7 +15,7 @@ export function mapFamilyClusters(
   threshold: number,
   schedules: ScheduleInfo[],
   existingClusters: FamilyClusters = new Map(),
-  referenceSchedules: ScheduleInfo[]
+  referenceSchedules: ScheduleInfo[] = []
 ): FamilyClusters {
   // Precompute map from ID to scheduleInfo...
   let scheduleInfoMap = new Map<string, ScheduleInfo>();
