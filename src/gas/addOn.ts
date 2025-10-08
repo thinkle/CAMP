@@ -29,6 +29,9 @@ export function onOpen(e: any): void {
   menu.addToUi();
 }
 
-export function onInstall(e) {
+export function onInstall(e: any): void {
   // Call all registered AddOn onInstall methods
+  // According to Google Apps Script documentation, onInstall should call onOpen
+  // to set up the menu on first installation
+  onOpen(e);
 }
