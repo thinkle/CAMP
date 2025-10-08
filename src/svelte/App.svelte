@@ -9,6 +9,7 @@
 
   import { GoogleAppsScript } from "./gasApi";
   import {
+    Bar,
     Button,
     Container,
     Accordion,
@@ -36,6 +37,7 @@
   onMount(async () => {
     sheetsReady = await GoogleAppsScript.areDataSheetsSetup();
   });
+  import img from "../../public/camp-logo-96-transparent.png";
 </script>
 
 <Container
@@ -46,10 +48,10 @@
   --padding="4px 2px"
   --border-radius="0"
 >
-  <h1>CAMP</h1>
+  <img alt="CAMP" src={img} class="logo" />
   <h2>The Companion & Activity Matching Planner</h2>
 
-  <Accordion>
+  <Accordion highlanderMode={true}>
     <details open={!sheetsReady}>
       <summary>Set-Up Sheets</summary>
       <SetupSheets></SetupSheets>
@@ -106,6 +108,8 @@
   }
   h1 {
     text-align: center !important;
+    vertical-align: middle;
+    font-size: 48px;
   }
   .footer {
     display: flex;
@@ -115,5 +119,10 @@
   }
   .build {
     font-size: 0.7rem;
+  }
+  .logo {
+    margin: auto;
+    width: 96px;
+    display: block;
   }
 </style>

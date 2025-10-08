@@ -18,6 +18,9 @@ export default defineConfig({
   },
   plugins: [svelte(), viteSingleFile()],
   root: "./src/svelte/",
+  resolve: {
+    dedupe: ["contain-css-svelte"],
+  },
   build: {
     outDir: "../../dist",
     emptyOutDir: false, // Ensure the output directory is empty
