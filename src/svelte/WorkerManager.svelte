@@ -17,6 +17,7 @@
     TabItem,
     Progress,
     FormItem,
+    Accordion,
   } from "contain-css-svelte";
 
   import type {
@@ -320,55 +321,58 @@
       {/if}
     </div>
     <div class="content" class:visible={tab == "build"}>
-      <BuildProgress {workerIds} {workerMessages} {stopWorker}></BuildProgress>
-      <b>{schedules.length} Total Schedules ({clusterMap.size} clusters)</b>
-      {#if schedules.length}
-        <Clusterer
+      <Accordion highlanderMode={false}>
+        <BuildProgress {workerIds} {workerMessages} {stopWorker}
+        ></BuildProgress>
+        <b>{schedules.length} Total Schedules ({clusterMap.size} clusters)</b>
+        {#if schedules.length}
+          <Clusterer
+            data={schedulerData}
+            {schedules}
+            {clusterMap}
+            {setClusterMap}
+            {setClusters}
+            {worker}
+            {clusters}
+          ></Clusterer>
+        {/if}
+        <FormItem --margin-bottom="1rem">
+          <span slot="label">Rounds</span>
+          <input type="number" bind:value={rounds} />
+        </FormItem>
+        <ScheduleGenerator
           data={schedulerData}
-          {schedules}
-          {clusterMap}
-          {setClusterMap}
-          {setClusters}
           {worker}
-          {clusters}
-        ></Clusterer>
-      {/if}
-      <FormItem --margin-bottom="1rem">
-        <span slot="label">Rounds</span>
-        <input type="number" bind:value={rounds} />
-      </FormItem>
-      <ScheduleGenerator
-        data={schedulerData}
-        {worker}
-        {initializeWorker}
-        setMessage={setWorkerMessage}
-        {rounds}
-      />
-      <ScheduleEvolver
-        data={schedulerData}
-        {worker}
-        setMessage={setWorkerMessage}
-        {rounds}
-        {schedules}
-        {clusters}
-        {evolveScheduleGroup}
-      />
-      {#if schedules.length}
-        <ScheduleImprover
-          {improveSchedule}
+          {initializeWorker}
+          setMessage={setWorkerMessage}
+          {rounds}
+        />
+        <ScheduleEvolver
+          data={schedulerData}
+          {worker}
+          setMessage={setWorkerMessage}
+          {rounds}
           {schedules}
           {clusters}
-          {mostRecentSchedule}
-          {bestSchedule}
+          {evolveScheduleGroup}
         />
-        <LatestSchedules
-          {schedules}
-          {clusters}
-          {mostRecentSchedule}
-          {bestSchedule}
-          {improveSchedule}
-        />
-      {/if}
+        {#if schedules.length}
+          <ScheduleImprover
+            {improveSchedule}
+            {schedules}
+            {clusters}
+            {mostRecentSchedule}
+            {bestSchedule}
+          />
+          <LatestSchedules
+            {schedules}
+            {clusters}
+            {mostRecentSchedule}
+            {bestSchedule}
+            {improveSchedule}
+          />
+        {/if}
+      </Accordion>
     </div>
     <div class="content" class:visible={tab == "explore"}>
       <BuildExplorer
