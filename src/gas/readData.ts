@@ -43,7 +43,7 @@ export function readData(keepEmpty = false): PreferenceData {
     if (!activityName) break;
 
     const capacity = Number(capacityValue) || 0;
-    activities.push({ activity: activityName, capacity });
+    activities.push({ activity: String(activityName), capacity });
   }
 
   // --------------------------------------
@@ -128,7 +128,7 @@ export function readData(keepEmpty = false): PreferenceData {
     if (override) {
       studentPreferences.push({
         identifier: String(identifier),
-        activity: [{ activity: override, weight: 1000 }],
+        activity: [{ activity: String(override), weight: 1000 }],
         peer: peerPrefs,
       });
     } else {
