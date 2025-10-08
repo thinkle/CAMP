@@ -11,7 +11,7 @@ import type { Activity, StudentPreferences } from "../../types";
 describe("validateActivityTypes", () => {
   test("should detect type mismatch between activities and preferences", () => {
     const activities: any[] = [
-      { activity: 201, capacity: 10 },  // number
+      { activity: 201, capacity: 10 }, // number
       { activity: 202, capacity: 10 },
     ];
 
@@ -19,7 +19,7 @@ describe("validateActivityTypes", () => {
       {
         identifier: "Student1",
         activity: [
-          { activity: "201", weight: 10 },  // string
+          { activity: "201", weight: 10 }, // string
           { activity: "202", weight: 5 },
         ],
         peer: [],
@@ -68,7 +68,7 @@ describe("validateActivityReferences", () => {
         identifier: "Student1",
         activity: [
           { activity: "201", weight: 10 },
-          { activity: "999", weight: 5 },  // doesn't exist!
+          { activity: "999", weight: 5 }, // doesn't exist!
         ],
         peer: [],
       },
@@ -111,7 +111,7 @@ describe("validatePeerReferences", () => {
         activity: [],
         peer: [
           { peer: "Student2", weight: 50 },
-          { peer: "NonExistent", weight: 30 },  // doesn't exist!
+          { peer: "NonExistent", weight: 30 }, // doesn't exist!
         ],
       },
       {
@@ -173,14 +173,18 @@ describe("validateData (comprehensive)", () => {
     ];
 
     const warnings = validateData(activities, studentPreferences);
-    
+
     // Should detect the type mismatch
-    const typeMismatchWarning = warnings.find(w => w.type === "type-mismatch");
+    const typeMismatchWarning = warnings.find(
+      (w) => w.type === "type-mismatch"
+    );
     expect(typeMismatchWarning).toBeDefined();
     expect(typeMismatchWarning!.severity).toBe("error");
-    
+
     // Should also detect that the activity references don't match
-    const unknownActivityWarning = warnings.find(w => w.type === "unknown-activity");
+    const unknownActivityWarning = warnings.find(
+      (w) => w.type === "unknown-activity"
+    );
     expect(unknownActivityWarning).toBeDefined();
     expect(unknownActivityWarning!.severity).toBe("error");
   });

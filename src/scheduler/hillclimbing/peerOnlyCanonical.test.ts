@@ -116,11 +116,11 @@ describe("Peer-only mode canonical schedule IDs", () => {
 
     // Schedule 2: Swap within each capacity tier
     const schedule2: Schedule = [
-      { student: "Alice", activity: "Small 2" },  // Swapped small cabins
+      { student: "Alice", activity: "Small 2" }, // Swapped small cabins
       { student: "Bob", activity: "Small 2" },
       { student: "Charlie", activity: "Small 1" },
       { student: "Dave", activity: "Small 1" },
-      { student: "Eve", activity: "Large 2" },    // Swapped large cabins
+      { student: "Eve", activity: "Large 2" }, // Swapped large cabins
       { student: "Frank", activity: "Large 2" },
       { student: "Grace", activity: "Large 1" },
       { student: "Henry", activity: "Large 1" },

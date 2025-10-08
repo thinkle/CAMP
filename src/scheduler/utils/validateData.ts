@@ -1,7 +1,11 @@
 import type { Activity, StudentPreferences } from "../../types";
 
 export type ValidationWarning = {
-  type: "type-mismatch" | "unknown-activity" | "unknown-peer" | "capacity-insufficient";
+  type:
+    | "type-mismatch"
+    | "unknown-activity"
+    | "unknown-peer"
+    | "capacity-insufficient";
   severity: "error" | "warning";
   message: string;
   details?: any;
@@ -10,7 +14,7 @@ export type ValidationWarning = {
 /**
  * Validates that activity identifiers are consistently typed across
  * the activities list and student preferences.
- * 
+ *
  * This catches the bug where activities might be numbers but preferences
  * are strings (or vice versa), which causes === comparisons to fail.
  */
@@ -19,15 +23,15 @@ export function validateActivityTypes(
   studentPreferences: StudentPreferences[]
 ): ValidationWarning[] {
   const warnings: ValidationWarning[] = [];
-  
+
   if (activities.length === 0 || studentPreferences.length === 0) {
     return warnings;
   }
 
   // Check types of activity identifiers
-  const activityTypes = new Set(activities.map(a => typeof a.activity));
+  const activityTypes = new Set(activities.map((a) => typeof a.activity));
   const preferenceTypes = new Set<string>();
-  
+
   for (const student of studentPreferences) {
     for (const pref of student.activity) {
       preferenceTypes.add(typeof pref.activity);
@@ -39,11 +43,15 @@ export function validateActivityTypes(
     warnings.push({
       type: "type-mismatch",
       severity: "error",
-      message: "Activity identifiers have inconsistent types in activities list",
+      message:
+        "Activity identifiers have inconsistent types in activities list",
       details: {
         types: Array.from(activityTypes),
-        activities: activities.map(a => ({ name: a.activity, type: typeof a.activity }))
-      }
+        activities: activities.map((a) => ({
+          name: a.activity,
+          type: typeof a.activity,
+        })),
+      },
     });
   }
 
@@ -51,10 +59,11 @@ export function validateActivityTypes(
     warnings.push({
       type: "type-mismatch",
       severity: "error",
-      message: "Activity identifiers have inconsistent types in student preferences",
+      message:
+        "Activity identifiers have inconsistent types in student preferences",
       details: {
         types: Array.from(preferenceTypes),
-      }
+      },
     });
   }
 
@@ -62,7 +71,7 @@ export function validateActivityTypes(
   if (activityTypes.size === 1 && preferenceTypes.size === 1) {
     const activityType = Array.from(activityTypes)[0];
     const preferenceType = Array.from(preferenceTypes)[0];
-    
+
     if (activityType !== preferenceType) {
       warnings.push({
         type: "type-mismatch",
@@ -76,9 +85,11 @@ export function validateActivityTypes(
             activityType: typeof activities[0].activity,
             preference: studentPreferences[0].activity[0]?.activity,
             preferenceType: typeof studentPreferences[0].activity[0]?.activity,
-            wouldMatch: activities[0].activity === studentPreferences[0].activity[0]?.activity
-          }
-        }
+            wouldMatch:
+              activities[0].activity ===
+              studentPreferences[0].activity[0]?.activity,
+          },
+        },
       });
     }
   }
@@ -95,7 +106,7 @@ export function validateActivityReferences(
   studentPreferences: StudentPreferences[]
 ): ValidationWarning[] {
   const warnings: ValidationWarning[] = [];
-  const activitySet = new Set(activities.map(a => a.activity));
+  const activitySet = new Set(activities.map((a) => a.activity));
   const unknownActivities = new Set<string>();
 
   for (const student of studentPreferences) {
@@ -113,8 +124,8 @@ export function validateActivityReferences(
       message: `Student preferences reference ${unknownActivities.size} activity/activities that don't exist in the activities list`,
       details: {
         unknownActivities: Array.from(unknownActivities),
-        validActivities: activities.map(a => a.activity)
-      }
+        validActivities: activities.map((a) => a.activity),
+      },
     });
   }
 
@@ -129,7 +140,7 @@ export function validatePeerReferences(
   studentPreferences: StudentPreferences[]
 ): ValidationWarning[] {
   const warnings: ValidationWarning[] = [];
-  const studentSet = new Set(studentPreferences.map(s => s.identifier));
+  const studentSet = new Set(studentPreferences.map((s) => s.identifier));
   const unknownPeers = new Set<string>();
 
   for (const student of studentPreferences) {
@@ -146,8 +157,8 @@ export function validatePeerReferences(
       severity: "warning",
       message: `Student preferences reference ${unknownPeers.size} peer(s) that don't exist in the student list`,
       details: {
-        unknownPeers: Array.from(unknownPeers)
-      }
+        unknownPeers: Array.from(unknownPeers),
+      },
     });
   }
 
@@ -173,8 +184,8 @@ export function validateCapacity(
       details: {
         studentCount,
         totalCapacity,
-        shortage: studentCount - totalCapacity
-      }
+        shortage: studentCount - totalCapacity,
+      },
     });
   }
 
