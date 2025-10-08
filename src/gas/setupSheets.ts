@@ -16,12 +16,20 @@ export const ASSIGNED_ACTIVITY_COL = "activity";
 export const OVERRIDE_COL = "override";
 export const WEIGHT_HEADER = "wght";
 export const SCORE_HEADER = "score";
-export const STARTER_COLS = [IDCOL, ASSIGNED_ACTIVITY_COL, OVERRIDE_COL, SCORE_HEADER];
+export const STARTER_COLS = [
+  IDCOL,
+  ASSIGNED_ACTIVITY_COL,
+  OVERRIDE_COL,
+  SCORE_HEADER,
+];
 const WEIGHT_WIDTH = 30;
 const ACTIVITY_WIDTH = 100;
 const PEER_WIDTH = 150;
 
-export function setupPreferencesSheet(activity_preferences = 4, peer_preferences = 4) {
+export function setupPreferencesSheet(
+  activity_preferences = 4,
+  peer_preferences = 4
+) {
   let sheet = getPreferencesSheet();
   let columns = [...STARTER_COLS];
 
@@ -134,28 +142,21 @@ export function setupPreferencesSheet(activity_preferences = 4, peer_preferences
   const peerPenaltyLookup = `IFERROR(VLOOKUP("noPeerPenalty", '${scoringSettingsSheetName}'!A:B, 2, FALSE), 0)`;
   const activityPenaltyLookup = `IFERROR(VLOOKUP("noActivityPenalty", '${scoringSettingsSheetName}'!A:B, 2, FALSE), 0)`;
 
-  const positiveTerms = scoreFormula.length > 0 ? scoreFormula.join(" + ") : "0";
+  const positiveTerms =
+    scoreFormula.length > 0 ? scoreFormula.join(" + ") : "0";
   const peerPenaltyFormula =
     peerMatchChecks.length > 0
       ? `IF((${peerMatchChecks.join(" + ")})=0, ${peerPenaltyLookup}, 0)`
       : "0";
   const activityPenaltyFormula =
     activityMatchChecks.length > 0
-      ? `IF((${activityMatchChecks.join(" + ")})=0, ${activityPenaltyLookup}, 0)`
+      ? `IF((${activityMatchChecks.join(
+          " + "
+        )})=0, ${activityPenaltyLookup}, 0)`
       : "0";
   const penaltyTerms = `${peerPenaltyFormula} + ${activityPenaltyFormula}`;
 
   const combinedScoreFormula = `=IF(ISBLANK($B2), 0, ((${positiveTerms}) - (${penaltyTerms})))`;
-  sheet
-    .getRange(2, scoreColumnIndex, lastRow - 1)
-    .setFormula(combinedScoreFormula);
-  log(
-    "setupPreferencesSheet: wrote score formula to column",
-    scoreColumnIndex,
-    "covering",
-    lastRow - 1,
-    "rows"
-  );
 
   // Apply all conditional formatting rules
   sheet.setConditionalFormatRules(rules);
@@ -167,6 +168,16 @@ export function setupPreferencesSheet(activity_preferences = 4, peer_preferences
   // Set column headers
   sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
 
+  sheet
+    .getRange(2, scoreColumnIndex, lastRow - 1)
+    .setFormula(combinedScoreFormula);
+  log(
+    "setupPreferencesSheet: wrote score formula to column",
+    scoreColumnIndex,
+    "covering",
+    lastRow - 1,
+    "rows"
+  );
   // Ensure scoring settings sheet exists with defaults if missing
   getScoringSettingsSheet();
 }
