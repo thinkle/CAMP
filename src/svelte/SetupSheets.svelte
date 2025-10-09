@@ -81,21 +81,22 @@
   <div style="display:flex; flex-direction: row; align-items: center">
     <FormItem>
       <span slot="label"># Peers</span>
-      <input type="number" min="1" max="10" bind:value={npeers} />
+      <input type="number" min="0" bind:value={npeers} />
     </FormItem>
     <FormItem>
       <span slot="label"># Activity Pref Slots</span>
       <input
         type="number"
         min="0"
-        max="10"
         bind:value={activityPrefSlots}
         disabled={peerOnlyMode}
       />
     </FormItem>
   </div>
   <FormItem>
-    <Checkbox bind:checked={peerOnlyMode}>Peer-only mode (ignore activities)</Checkbox>
+    <Checkbox bind:checked={peerOnlyMode}
+      >Peer-only mode (ignore activities)</Checkbox
+    >
     <p slot="after">
       When enabled, students won't register activity preferences—only peer
       preferences are gathered.
