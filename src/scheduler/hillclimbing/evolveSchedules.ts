@@ -48,6 +48,10 @@ export function* createCrosses(
         pair[0].generation + 1,
         scoringOptions
       );
+      if (mergedInfo.invalid) {
+        console.log("crossbreed ignoring invalid:", mergedInfo.invalid);
+        continue;
+      }
       if (existingSet.has(mergedInfo.id)) {
         console.log("crossbreed ignoring dup");
         continue;

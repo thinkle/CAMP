@@ -26,9 +26,7 @@
   };
   $: console.log("Data Preview: ", data);
   let item = 1;
-  let sp: StudentPreferences | null = data
-    ? data.studentPreferences[0]
-    : null;
+  let sp: StudentPreferences | null = data ? data.studentPreferences[0] : null;
   let activity: Activity | null = data ? data.activities[0] : null;
   $: if (data && !sp) sp = data.studentPreferences[0];
   $: if (data && !activity) activity = data.activities[0];
@@ -157,6 +155,12 @@
           <th>Capacity</th>
           <td>{activity.capacity}</td>
         </tr>
+        {#if activity.minSize}
+          <tr>
+            <th>Minimum</th>
+            <td>{activity.minSize}</td>
+          </tr>
+        {/if}
         <tr>
           <th colspan="2">Requests</th>
         </tr>

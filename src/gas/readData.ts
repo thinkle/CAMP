@@ -37,13 +37,14 @@ export function readData(keepEmpty = false): PreferenceData {
   const activities: Activity[] = [];
   // Skip header row (assumed row 1)
   for (let row = 1; row < activitiesData.length; row++) {
-    const [activityName, capacityValue] = activitiesData[row];
+    const [activityName, capacityValue, minSizeValue] = activitiesData[row];
 
     // If the activity name cell is empty, we assume we've reached the end of data
     if (!activityName) break;
 
     const capacity = Number(capacityValue) || 0;
-    activities.push({ activity: String(activityName), capacity });
+    const minSize = Number(minSizeValue) || 0;
+    activities.push({ activity: String(activityName), capacity, minSize });
   }
 
   // --------------------------------------
@@ -200,10 +201,16 @@ function readScoringSettings(): ScoringOptions {
     return isNaN(parsed) ? DEFAULT_SCORING_OPTIONS[key] : parsed;
   };
 
-  return {
-    mutualPeerMultiplier: toNumber("mutualPeerMultiplier"),
-    nonMutualPeerMultiplier: toNumber("nonMutualPeerMultiplier"),
-    noPeerPenalty: toNumber("noPeerPenalty"),
-    noActivityPenalty: toNumber("noActivityPenalty"),
-  };
+  // Log it if we have an unexpected key
+  let returnValue = {};
+  for (let key of map.keys()) {
+    if (!(key in DEFAULT_SCORING_OPTIONS)) {
+      console.log(`Warning: Unrecognized scoring option key "${key}"`);
+    } else {
+      returnValue[key as keyof ScoringOptions] = toNumber(
+        key as keyof ScoringOptions
+      );
+    }
+  }
+  return returnValue as ScoringOptions;
 }

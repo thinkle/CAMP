@@ -16,6 +16,7 @@ export type StudentPreferences = {
 export type Activity = {
   activity: string;
   capacity: number;
+  minSize?: number; // Minimum number of students required (defaults to 0)
 };
 export type Assignment = {
   activity: string;
@@ -38,6 +39,8 @@ export type ScoringOptions = {
   nonMutualPeerMultiplier: number;
   noPeerPenalty: number;
   noActivityPenalty: number;
+  lowScoreThreshold: number;
+  lowScorePenalty: number;
 };
 
 export const DEFAULT_SCORING_OPTIONS: ScoringOptions = {
@@ -45,6 +48,8 @@ export const DEFAULT_SCORING_OPTIONS: ScoringOptions = {
   nonMutualPeerMultiplier: 0.5,
   noPeerPenalty: 0,
   noActivityPenalty: 0,
+  lowScoreThreshold: 0,
+  lowScorePenalty: 0,
 };
 
 export type PreferenceMode = "activities-and-peers" | "peer-only";

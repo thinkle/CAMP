@@ -8,6 +8,7 @@ import { DEFAULT_SCORING_OPTIONS } from "../../types";
 
 export const DuplicateError = "Student assigned to multiple activities";
 export const CapacityError = "Activity overbooked";
+export const MinimumSizeError = "Activity below minimum size";
 
 export const validateSchedule = (
   schedule: Schedule,
@@ -29,9 +30,16 @@ export const validateSchedule = (
     studentMap.set(student, 1);
   }
   for (const [activity, count] of activityMap.entries()) {
-    const capacity = activities.find((a) => a.activity === activity)!.capacity;
+    const activityInfo = activities.find((a) => a.activity === activity)!;
+    const capacity = activityInfo.capacity;
+    const minSize = activityInfo.minSize || 0;
+
     if (count > capacity) {
       return CapacityError;
+    }
+    // Check minimum size only if activity has students assigned
+    if (count > 0 && count < minSize) {
+      return MinimumSizeError;
     }
   }
   return null;
@@ -73,7 +81,7 @@ export const scoreSchedule = (
     const prefs = preferencesMap.get(student);
     if (!prefs) continue;
 
-     const state = matchState.get(student);
+    const state = matchState.get(student);
 
     let individualScore = 0;
 
@@ -113,22 +121,7 @@ export const scoreSchedule = (
     individualScores.push(individualScore);
   }
 
-  // Sort scores and take the bottom 10%
-  /* individualScores.sort((a, b) => a - b);
-  const decileSize = Math.max(1, Math.floor(individualScores.length / 10)); // Ensure at least 1 value
-  const lowestDecileScores = individualScores.slice(0, decileSize);
-   */
-  // Handle potential empty array case to avoid NaN
-  /* const avgLowestDecileScore =
-    lowestDecileScores.length > 0
-      ? lowestDecileScores.reduce((acc, score) => acc + score, 0) /
-        lowestDecileScores.length
-      : 0;
- */
-  // Penalize schedules with low-satisfaction students
-  //const weightedLowestScore = avgLowestDecileScore * schedule.length;
-
-  //return Math.floor(activityScore + peerScore + weightedLowestScore);
+  // Apply penalties based on match state and individual scores
   if (matchState.size) {
     for (const { activityMatch, peerMatches } of matchState.values()) {
       if (!activityMatch && scoringOptions.noActivityPenalty) {
@@ -136,6 +129,18 @@ export const scoreSchedule = (
       }
       if (peerMatches === 0 && scoringOptions.noPeerPenalty) {
         penaltyScore += scoringOptions.noPeerPenalty;
+      }
+    }
+  }
+
+  // Apply low score threshold penalty
+  if (
+    scoringOptions.lowScoreThreshold > 0 &&
+    scoringOptions.lowScorePenalty > 0
+  ) {
+    for (const score of individualScores) {
+      if (score < scoringOptions.lowScoreThreshold) {
+        penaltyScore += scoringOptions.lowScorePenalty;
       }
     }
   }

@@ -71,6 +71,18 @@ async function improveForever(
         schedule.generation + 1,
         scoringOptions
       );
+      if (improvedInfo.invalid) {
+        console.log(
+          "Worker stopping - improved schedule is invalid:",
+          improvedInfo.invalid
+        );
+        postMessage({
+          type: "doneImproving",
+          complete: true,
+          message: `Stopped - improvement would create invalid schedule: ${improvedInfo.invalid}`,
+        });
+        return;
+      }
       if (improvedInfo.score > schedule.score) {
         schedule = improvedInfo;
         if (existingSet && existingSet.has(improvedInfo.id)) {

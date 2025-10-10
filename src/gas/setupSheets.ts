@@ -194,7 +194,7 @@ export function getPreferencesSheet() {
 
 export function setupActivitiesSheet() {
   let sheet = getActivitiesSheet();
-  let columns = ["Activity", "Capacity", "# Assigned", "Roster"];
+  let columns = ["Activity", "Capacity", "Minimum", "# Assigned", "Roster"];
   const preferenceSheetName = "Preferences";
 
   // Dynamically retrieve column indexes from STARTER_COLS
@@ -218,27 +218,35 @@ export function setupActivitiesSheet() {
       SpreadsheetApp.newDataValidation().requireNumberBetween(0, 1000).build()
     );
 
-  let lastRow = Math.max(sheet.getMaxRows(), 2); // At least one row of data
-
-  // Add formula for "# Assigned" column using R1C1 notation
+  // Add data validation for the Minimum column
   sheet
-    .getRange(2, 3, lastRow - 1, 1)
-    .setFormulaR1C1(
-      `=IF(NOT(ISBLANK(RC[-2])),COUNTIF('${preferenceSheetName}'!C${ASSIGNED_ACTIVITY_COL_INDEX}, RC[-2]),"")`
+    .getRange(2, 3, sheet.getMaxRows(), 1)
+    .setDataValidation(
+      SpreadsheetApp.newDataValidation().requireNumberBetween(0, 1000).build()
     );
 
-  // Add formula for the "Roster" column using R1C1 notation
+  let lastRow = Math.max(sheet.getMaxRows(), 2); // At least one row of data
+
+  // Add formula for "# Assigned" column using R1C1 notation (now column 4)
   sheet
     .getRange(2, 4, lastRow - 1, 1)
     .setFormulaR1C1(
-      `=IF(NOT(ISBLANK(RC[-3])),TRANSPOSE(FILTER('${preferenceSheetName}'!C${IDCOL_INDEX}, '${preferenceSheetName}'!C${ASSIGNED_ACTIVITY_COL_INDEX}=RC[-3])),"")`
+      `=IF(NOT(ISBLANK(RC[-3])),COUNTIF('${preferenceSheetName}'!C${ASSIGNED_ACTIVITY_COL_INDEX}, RC[-3]),"")`
+    );
+
+  // Add formula for the "Roster" column using R1C1 notation (now column 5)
+  sheet
+    .getRange(2, 5, lastRow - 1, 1)
+    .setFormulaR1C1(
+      `=IF(NOT(ISBLANK(RC[-4])),TRANSPOSE(FILTER('${preferenceSheetName}'!C${IDCOL_INDEX}, '${preferenceSheetName}'!C${ASSIGNED_ACTIVITY_COL_INDEX}=RC[-4])),"")`
     );
 
   // Adjust column widths for better readability
   sheet.setColumnWidth(1, 200); // Activity
   sheet.setColumnWidth(2, 100); // Capacity
-  sheet.setColumnWidth(3, 120); // # Assigned
-  sheet.setColumnWidth(4, 300); // Roster
+  sheet.setColumnWidth(3, 100); // Minimum
+  sheet.setColumnWidth(4, 120); // # Assigned
+  sheet.setColumnWidth(5, 300); // Roster
 }
 
 export function getActivitiesSheet() {

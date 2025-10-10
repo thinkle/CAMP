@@ -18,6 +18,7 @@ import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { scheduleToId } from "./scheduleSaver";
 import { createScheduleInfo } from "./scheduleInfo";
 import { assignByMostConstrained } from "../heuristics/mostConstrainedHeuristic";
+import { healMinimumSize } from "../utils/healMinimumSize";
 
 let schedules: ScheduleInfo[] = [];
 let activities: Activity[] = [];
@@ -145,6 +146,8 @@ export function* generate(
         let shuffledPrefs = [...prefs];
         shuffledPrefs.sort(() => Math.random() - 0.5);
         let schedule = alg(shuffledPrefs, activities);
+
+        // Try to heal the schedule if it's invalid
         let info = createScheduleInfo(
           schedule,
           prefs,
@@ -153,6 +156,33 @@ export function* generate(
           0,
           scoringOptions
         );
+
+        if (info.invalid) {
+          console.log("Schedule invalid, attempting to heal:", info.invalid);
+          const healed = healMinimumSize(schedule, prefs, activities);
+
+          if (healed) {
+            // Successfully healed! Create new info
+            info = createScheduleInfo(
+              healed,
+              prefs,
+              activities,
+              functionsToName.get(alg) + " (healed)",
+              0,
+              scoringOptions
+            );
+
+            if (info.invalid) {
+              console.log("Healed schedule still invalid:", info.invalid);
+              continue;
+            }
+            console.log("Successfully healed schedule!");
+          } else {
+            console.log("Could not heal schedule, ignoring");
+            continue;
+          }
+        }
+
         if (!existingIds.has(info.id)) {
           existingIds.add(info.id);
           schedules.push(info);
@@ -185,6 +215,10 @@ export const generateSchedulesFromHeuristics = (
     undefined,
     scoringOptions
   )) {
+    if (scheduleInfo.invalid) {
+      console.log("Ignoring invalid schedule:", scheduleInfo.invalid);
+      continue;
+    }
     if (!existingIds.has(scheduleInfo.id)) {
       existingIds.add(scheduleInfo.id);
       schedules.push(scheduleInfo);
