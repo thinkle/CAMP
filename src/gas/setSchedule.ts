@@ -12,26 +12,29 @@ import { scoreScheduleWithBreakdown } from "../scheduler/scoring/scoreSchedule";
 
 export function writeSchedule(schedule: Schedule) {
   let sheet = getPreferencesSheet();
-  let idcol = 0;
-  let assignmentCol = 1;
-  let scoreCol = STARTER_COLS.indexOf(COMPUTED_SCORE_HEADER);
-  // Read all data...
-  // columns we need are just...
-  // idcol and assignmentCol
-  let lastNeededColumn =
-    Math.max(
-      STARTER_COLS.indexOf(IDCOL),
-      STARTER_COLS.indexOf(ASSIGNED_ACTIVITY_COL),
-      scoreCol
-    ) + 1; // 1-based
   let lastDataRow = sheet.getLastRow();
-  let data = sheet.getRange(1, 1, lastDataRow, lastNeededColumn).getValues();
-  const rowById = new Map<string, any[]>();
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const id = row[idcol];
+  const idColIndex = STARTER_COLS.indexOf(IDCOL) + 1;
+  const assignmentColIndex = STARTER_COLS.indexOf(ASSIGNED_ACTIVITY_COL) + 1;
+  const scoreColIndex = STARTER_COLS.indexOf(COMPUTED_SCORE_HEADER) + 1;
+  if (idColIndex <= 0 || assignmentColIndex <= 0 || scoreColIndex <= 0) {
+    throw new Error(
+      "writeSchedule: missing expected columns in Preferences sheet"
+    );
+  }
+  const idValues = sheet
+    .getRange(2, idColIndex, lastDataRow - 1, 1)
+    .getValues();
+  const assignmentValues = sheet
+    .getRange(2, assignmentColIndex, lastDataRow - 1, 1)
+    .getValues();
+  const computedScoreValues = sheet
+    .getRange(2, scoreColIndex, lastDataRow - 1, 1)
+    .getValues();
+  const rowIndexById = new Map<string, number>();
+  for (let i = 0; i < idValues.length; i++) {
+    const id = idValues[i][0];
     if (!id) continue;
-    rowById.set(String(id), row);
+    rowIndexById.set(String(id), i);
   }
 
   const { studentPreferences, activities, scoringOptions } = readData(true);
@@ -50,27 +53,32 @@ export function writeSchedule(schedule: Schedule) {
   );
   // Update data...
   for (let assignment of schedule) {
-    let row = rowById.get(assignment.student);
-    if (row) {
-      row[assignmentCol] = assignment.activity;
+    const rowIndex = rowIndexById.get(assignment.student);
+    if (rowIndex !== undefined) {
+      assignmentValues[rowIndex][0] = assignment.activity;
       const score = perStudentScores.get(assignment.student);
       if (score !== undefined) {
-        row[scoreCol] = score;
+        computedScoreValues[rowIndex][0] = score;
       }
     } else {
       console.error("Unable to find student", assignment.student);
       console.error(
         "Was searching through data: ",
-        data.map((d) => d[idcol])
+        idValues.map((d) => d[0])
       );
       throw new Error(`Student ${assignment.student} not found in data`);
     }
   }
   for (const [studentId, score] of perStudentScores.entries()) {
-    const row = rowById.get(studentId);
-    if (!row) continue;
-    row[scoreCol] = score;
+    const rowIndex = rowIndexById.get(studentId);
+    if (rowIndex === undefined) continue;
+    computedScoreValues[rowIndex][0] = score;
   }
   // Write back...
-  sheet.getRange(1, 1, data.length, data[0].length).setValues(data);
+  sheet
+    .getRange(2, assignmentColIndex, lastDataRow - 1, 1)
+    .setValues(assignmentValues);
+  sheet
+    .getRange(2, scoreColIndex, lastDataRow - 1, 1)
+    .setValues(computedScoreValues);
 }
