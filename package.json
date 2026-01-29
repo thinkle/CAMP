@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "create-clasp-project": "node createClaspProject.js",
-    "push-to-clasp": "npm run build && clasp push",
+    "push-to-clasp": "npm run build && clasp push && echo \"To publish update: create a new version in Apps Script, then update the Marketplace SDK version here: https://console.cloud.google.com/apis/api/appsmarket-component.googleapis.com/googleapps_sdk?project=camp-474511\"",
     "watch:all": "concurrently \"chokidar 'src/gas/api.ts' -c 'npm run build:all'\" \"chokidar 'worker/main.js' -c 'npm run build-worker'\"",
     "build:all": "npm-run-all build-types build-mocks build-gas-api",
     "build-worker": "vite build --config vite.config.worker.ts",
