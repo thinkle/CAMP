@@ -19,6 +19,7 @@ import { scheduleToId } from "./scheduleSaver";
 import { createScheduleInfo } from "./scheduleInfo";
 import { assignByMostConstrained } from "../heuristics/mostConstrainedHeuristic";
 import { healMinimumSize } from "../utils/healMinimumSize";
+import { withPrunedActivities } from "../heuristics/pruneThenHeuristic";
 
 let schedules: ScheduleInfo[] = [];
 let activities: Activity[] = [];
@@ -71,6 +72,29 @@ const assignByTwenties = (
   return assignByCohorts(prefs, activities, 20);
 };
 
+const assignByMostConstrainedPruned = withPrunedActivities(
+  assignByMostConstrained
+);
+const assignByActivityPruned = withPrunedActivities(assignByActivity);
+const assignByPeerPruned = withPrunedActivities(assignByPeer);
+const assignMutualPeersFirstPruned = withPrunedActivities(
+  assignMutualPeersFirst
+);
+const assignFindAFriendPruned = withPrunedActivities(assignFindAFriend);
+const assignAvoidForbiddenPruned = withPrunedActivities(assignAvoidForbidden);
+const assignPenaltyFirstPruned = withPrunedActivities(assignPenaltyFirst);
+const assignByPriorityPruned = withPrunedActivities(assignByPriority);
+const assignByCohortMinSizePruned = withPrunedActivities(
+  assignByCohortMinSize
+);
+const assignByCohortMedianSizePruned = withPrunedActivities(
+  assignByCohortMedianSize
+);
+const assignByThreesPruned = withPrunedActivities(assignByThrees);
+const assignByFivesPruned = withPrunedActivities(assignByFives);
+const assignByTensPruned = withPrunedActivities(assignByTens);
+const assignByTwentiesPruned = withPrunedActivities(assignByTwenties);
+
 const assignFunctions = [
   assignByMostConstrained,
   assignByActivity,
@@ -86,6 +110,20 @@ const assignFunctions = [
   assignByFives,
   assignByTens,
   assignByTwenties,
+  assignByMostConstrainedPruned,
+  assignByActivityPruned,
+  assignByPeerPruned,
+  assignMutualPeersFirstPruned,
+  assignFindAFriendPruned,
+  assignAvoidForbiddenPruned,
+  assignPenaltyFirstPruned,
+  assignByPriorityPruned,
+  assignByCohortMinSizePruned,
+  assignByCohortMedianSizePruned,
+  assignByThreesPruned,
+  assignByFivesPruned,
+  assignByTensPruned,
+  assignByTwentiesPruned,
 ];
 
 export const algNames = [
@@ -103,6 +141,20 @@ export const algNames = [
   "Fives",
   "Tens",
   "Twenties",
+  "Prune Then Most Constrained",
+  "Prune Then Activity First",
+  "Prune Then Peer First",
+  "Prune Then Mutual Peer First",
+  "Prune Then Find a Friend",
+  "Prune Then Avoid Forbidden",
+  "Prune Then Penalty First",
+  "Prune Then Priority",
+  "Prune Then Cohort Min Size",
+  "Prune Then Cohort Median Size",
+  "Prune Then Threes",
+  "Prune Then Fives",
+  "Prune Then Tens",
+  "Prune Then Twenties",
 ];
 const nameToFunction = {
   "Most Constrained": assignByMostConstrained,
@@ -119,6 +171,20 @@ const nameToFunction = {
   Fives: assignByFives,
   Tens: assignByTens,
   Twenties: assignByTwenties,
+  "Prune Then Most Constrained": assignByMostConstrainedPruned,
+  "Prune Then Activity First": assignByActivityPruned,
+  "Prune Then Peer First": assignByPeerPruned,
+  "Prune Then Mutual Peer First": assignMutualPeersFirstPruned,
+  "Prune Then Find a Friend": assignFindAFriendPruned,
+  "Prune Then Avoid Forbidden": assignAvoidForbiddenPruned,
+  "Prune Then Penalty First": assignPenaltyFirstPruned,
+  "Prune Then Priority": assignByPriorityPruned,
+  "Prune Then Cohort Min Size": assignByCohortMinSizePruned,
+  "Prune Then Cohort Median Size": assignByCohortMedianSizePruned,
+  "Prune Then Threes": assignByThreesPruned,
+  "Prune Then Fives": assignByFivesPruned,
+  "Prune Then Tens": assignByTensPruned,
+  "Prune Then Twenties": assignByTwentiesPruned,
 };
 const functionsToName = new Map();
 for (let k in nameToFunction) {

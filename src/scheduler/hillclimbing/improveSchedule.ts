@@ -7,7 +7,7 @@ import type {
 } from "../../types";
 import { DEFAULT_SCORING_OPTIONS } from "../../types";
 import { computeHappinessForStudent } from "../scoring/computeHappinessForStudent";
-import { scoreSchedule } from "../scoring/scoreSchedule";
+import { scoreSchedule, validateSchedule } from "../scoring/scoreSchedule";
 import { getCohorts } from "../heuristics/assignByCohorts";
 
 const getScheduleData = (
@@ -33,7 +33,7 @@ const getScheduleData = (
   };
 };
 
-const improveLeastHappyWithSwaps = (
+export const improveLeastHappyWithSwaps = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[],
@@ -84,8 +84,10 @@ const improveLeastHappyWithSwaps = (
       const capacity = activities.find(
         (a) => a.activity === pref.activity
       )?.capacity;
-
-      if (roster.length < capacity!) {
+      if (capacity === undefined) {
+        continue;
+      }
+      if (roster.length < capacity) {
         // Apply direct move
         const newSchedule = schedule.map((assignment) =>
           assignment.student === unhappyStudent.identifier
@@ -109,10 +111,10 @@ const improveLeastHappyWithSwaps = (
       (a, b) => b.weight - a.weight
     )) {
       const roster = data.rosters.get(pref.activity) || [];
-      if (
-        roster.length <
-        (activities.find((a) => a.activity === pref.activity)?.capacity || 0)
-      ) {
+      const capacity = activities.find(
+        (a) => a.activity === pref.activity
+      )?.capacity;
+      if (capacity === undefined || roster.length < capacity) {
         continue; // Skip if not full
       }
 
@@ -149,7 +151,7 @@ const improveLeastHappyWithSwaps = (
   return { schedule, improved: false };
 };
 
-const mutateSchedule = (
+export const mutateSchedule = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[]
@@ -159,11 +161,14 @@ const mutateSchedule = (
   );
   let output = schedule.slice();
   for (let i = 0; i < nmutations; i++) {
-    let toMutate = Math.floor(Math.random() * schedule.length);
-    let currentAssignment = schedule[toMutate];
+    let toMutate = Math.floor(Math.random() * output.length);
+    let currentAssignment = output[toMutate];
     let student = studentPreferences.find(
       (s) => s.identifier === currentAssignment.student
-    )!;
+    );
+    if (!student) {
+      continue;
+    }
     let currentActivity = currentAssignment.activity;
     let options = student.activity.filter(
       (a) => a.activity !== currentActivity
@@ -173,8 +178,12 @@ const mutateSchedule = (
     }
     let newActivity =
       options[Math.floor(Math.random() * options.length)].activity;
-    let roster = schedule.filter((a) => a.activity === newActivity);
-    let capacity = activities.find((a) => a.activity === newActivity)!.capacity;
+    let targetActivity = activities.find((a) => a.activity === newActivity);
+    if (!targetActivity) {
+      continue;
+    }
+    let roster = output.filter((a) => a.activity === newActivity);
+    let capacity = targetActivity.capacity;
     if (roster.length < capacity) {
       // Just add us then
       output[toMutate] = { ...currentAssignment, activity: newActivity };
@@ -188,10 +197,10 @@ const mutateSchedule = (
       };
     }
   }
-  return schedule;
+  return output;
 };
 
-const improveByMovingCohorts = (
+export const improveByMovingCohorts = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[],
@@ -204,8 +213,12 @@ const improveByMovingCohorts = (
     );
     const topChoice = student.activity[0].activity; // Top choice activity
     const currentActivity = currentAssignment?.activity;
+    const topChoiceInfo = activities.find((a) => a.activity === topChoice);
+    if (!topChoiceInfo) {
+      return false;
+    }
     const availableSpots =
-      activities.find((a) => a.activity === topChoice)?.capacity! -
+      topChoiceInfo.capacity -
       schedule.filter((s) => s.activity === topChoice).length;
 
     return currentActivity !== topChoice && availableSpots >= 2; // At least room for a small cohort
@@ -228,8 +241,12 @@ const improveByMovingCohorts = (
   let improved = false;
 
   for (const [activity, students] of groupedByTopChoice.entries()) {
+    const activityInfo = activities.find((a) => a.activity === activity);
+    if (!activityInfo) {
+      continue;
+    }
     const availableSpots =
-      activities.find((a) => a.activity === activity)?.capacity! -
+      activityInfo.capacity -
       schedule.filter((s) => s.activity === activity).length;
 
     // Get cohorts within this group based on peer preferences
@@ -264,7 +281,7 @@ const improveByMovingCohorts = (
   return { schedule, improved };
 };
 
-export const improveSchedule = (
+export const improveScheduleLegacy = (
   schedule: Schedule,
   studentPreferences: StudentPreferences[],
   activities: Activity[],
@@ -321,4 +338,100 @@ export const improveSchedule = (
   }
 
   return schedule;
+};
+
+type ImprovementStrategy = {
+  name: string;
+  fn: (schedule: Schedule) => Schedule;
+};
+
+export const improveSchedule = (
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[],
+  activities: Activity[],
+  maxIterations = 10,
+  scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
+): Schedule => {
+  let current = schedule;
+  let currentScore = scoreSchedule(
+    current,
+    studentPreferences,
+    scoringOptions
+  );
+
+  const strategies: ImprovementStrategy[] = [
+    {
+      name: "Least Happy",
+      fn: (s) =>
+        improveLeastHappyWithSwaps(
+          s,
+          studentPreferences,
+          activities,
+          scoringOptions
+        ).schedule,
+    },
+    {
+      name: "Cohort",
+      fn: (s) =>
+        improveByMovingCohorts(
+          s,
+          studentPreferences,
+          activities,
+          scoringOptions
+        ).schedule,
+    },
+    {
+      name: "Mutate + Least Happy",
+      fn: (s) =>
+        improveLeastHappyWithSwaps(
+          mutateSchedule(s, studentPreferences, activities),
+          studentPreferences,
+          activities,
+          scoringOptions
+        ).schedule,
+    },
+    {
+      name: "Mutate + Cohort",
+      fn: (s) =>
+        improveByMovingCohorts(
+          mutateSchedule(s, studentPreferences, activities),
+          studentPreferences,
+          activities,
+          scoringOptions
+        ).schedule,
+    },
+  ];
+
+  let iterations = 0;
+  while (iterations < maxIterations) {
+    let bestSchedule = current;
+    let bestScore = currentScore;
+
+    for (const strategy of strategies) {
+      const candidate = strategy.fn(current);
+      const invalid = validateSchedule(candidate, activities);
+      if (invalid) {
+        continue;
+      }
+      const candidateScore = scoreSchedule(
+        candidate,
+        studentPreferences,
+        scoringOptions
+      );
+      if (candidateScore > bestScore) {
+        bestScore = candidateScore;
+        bestSchedule = candidate;
+      }
+    }
+
+    if (bestScore <= currentScore) {
+      break;
+    }
+
+    current = bestSchedule;
+    currentScore = bestScore;
+    iterations += 1;
+  }
+
+  return current;
 };

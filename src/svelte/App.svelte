@@ -29,6 +29,7 @@
     loadingFromSheets = true;
     data = await GoogleAppsScript.readData(keepEmpty);
     preferenceMode = data.preferenceMode;
+    console.log("CAMP_PREFERENCE_DATA", data);
     loadingFromSheets = false;
   };
   let loadingFromSheets = false;

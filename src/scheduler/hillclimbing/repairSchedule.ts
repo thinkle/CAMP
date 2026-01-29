@@ -63,9 +63,13 @@ export function repairSchedule(
       (a, b) => b.weight - a.weight
     );
     for (const { activity } of sortedActivities) {
-      const cap = capacityMap.get(activity)!;
-      if (occupantMap.get(activity)!.size < cap) {
-        occupantMap.get(activity)!.add(studentId);
+      const cap = capacityMap.get(activity);
+      const roster = occupantMap.get(activity);
+      if (cap === undefined || !roster) {
+        continue;
+      }
+      if (roster.size < cap) {
+        roster.add(studentId);
         return true;
       }
     }
@@ -76,10 +80,23 @@ export function repairSchedule(
     for (const p of sortedPeers) {
       const peerActivity = findActivityOfStudent(p.peer);
       if (!peerActivity) continue; // that peer isn't assigned
-      if (
-        occupantMap.get(peerActivity)!.size < capacityMap.get(peerActivity)!
-      ) {
-        occupantMap.get(peerActivity)!.add(studentId);
+      const cap = capacityMap.get(peerActivity);
+      const roster = occupantMap.get(peerActivity);
+      if (!roster || cap === undefined) {
+        continue;
+      }
+      if (roster.size < cap) {
+        roster.add(studentId);
+        return true;
+      }
+    }
+
+    // Last resort: assign to any activity with open capacity
+    for (const [activity, cap] of capacityMap.entries()) {
+      const roster = occupantMap.get(activity);
+      if (!roster) continue;
+      if (roster.size < cap) {
+        roster.add(studentId);
         return true;
       }
     }

@@ -96,6 +96,11 @@
       let id = message.id;
       // Handle different message types from the worker
       switch (message.type) {
+        case "started":
+          workerMessages[id] = message;
+          running = true;
+          break;
+
         case "generated":
           if (addSchedule(message.schedule)) {
             workerMessages[id] = message;
@@ -127,6 +132,11 @@
           break;
 
         case "error":
+          workerMessages[id] = message;
+          running = false;
+          break;
+
+        case "doneImproving":
           workerMessages[id] = message;
           running = false;
           break;
@@ -163,6 +173,39 @@
   };
 
   let rounds = 10;
+  let pruneBottomPercent = 50;
+  let keepRandomPercent = 5;
+
+  const pruneSchedules = () => {
+    if (!schedules.length) return;
+    const bottomPercent = Math.min(Math.max(pruneBottomPercent, 0), 100);
+    const keepPercent = Math.min(Math.max(keepRandomPercent, 0), 100);
+    if (bottomPercent <= 0) return;
+
+    const sorted = [...schedules].sort((a, b) => a.score - b.score);
+    const dropCount = Math.floor(sorted.length * (bottomPercent / 100));
+    if (dropCount <= 0) return;
+
+    const bottom = sorted.slice(0, dropCount);
+    const top = sorted.slice(dropCount);
+
+    const keepCount = Math.floor(dropCount * (keepPercent / 100));
+    let keptBottom: ScheduleInfo[] = [];
+    if (keepCount > 0) {
+      const shuffled = bottom.slice().sort(() => Math.random() - 0.5);
+      keptBottom = shuffled.slice(0, keepCount);
+    }
+
+    let nextSchedules = [...top, ...keptBottom];
+    if (nextSchedules.length === 0 && sorted.length > 0) {
+      nextSchedules = [sorted[sorted.length - 1]];
+    }
+
+    schedules = nextSchedules;
+    scheduleIdSet = new Set(schedules.map((s) => s.id));
+    clusterMap = new Map();
+    clusters = [];
+  };
 
   // Cleanup the worker on component unmount
   onMount(() => {
@@ -356,6 +399,20 @@
           {clusters}
           {evolveScheduleGroup}
         />
+        <details on:click|stopPropagation>
+          <summary>Prune</summary>
+          <FormItem>
+            <span slot="label">Drop bottom %</span>
+            <input type="number" min="0" max="100" bind:value={pruneBottomPercent} />
+          </FormItem>
+          <FormItem>
+            <span slot="label">Keep random % of dropped</span>
+            <input type="number" min="0" max="100" bind:value={keepRandomPercent} />
+          </FormItem>
+          <Button disabled={schedules.length < 2} on:click={pruneSchedules}
+            >Prune Schedules</Button
+          >
+        </details>
         {#if schedules.length}
           <ScheduleImprover
             {improveSchedule}

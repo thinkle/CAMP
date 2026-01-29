@@ -1,0 +1,749 @@
+{
+  "generatedAt": "2026-01-28T23:16:45.025Z",
+  "schedule": [
+    {
+      "student": "Allen, Miles",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Annarelli, Avalynn",
+      "activity": "Turtles, Trails, and Tales"
+    },
+    {
+      "student": "Assuncao, Myah",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Atchue, Connor",
+      "activity": "Adulting"
+    },
+    {
+      "student": "Bacigalupo, Alexis",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Baker, Che",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Baker, Teagan",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Banadda, Joy-Deborah",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Barnes, Holden",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Bartholomew, Hannah",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Bilawchuk, Carter",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Boule, Robert Tobias",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Boyle, Eric",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Brownlie, Gracie",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Buchannan, Deizsell",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Buchoon, Aalia",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Buckley, Nathan",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Bush, Lydia",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Cameron, Jacob",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Campbell, Aubrie",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Carbonneau, Cailey",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Card, Bristol",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Cargill, Annabel",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Carrion, Jaslina",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Carroll, Sinead",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Castro, Dayana",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Cayer, Colton",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Cayer, Kayla",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Chmielewski, Kyle",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Chuquimarca Vinueza, Aaron",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Clancy, Chase",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Claude, Brooklyn",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Conde, Jayden",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Connearney, Kathleen",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Cowan, Zachary",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Crafts, Samantha",
+      "activity": "Turtles, Trails, and Tales"
+    },
+    {
+      "student": "Crawford, Amelie",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Cruz-Rivera, Jaydrien",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "David, Chase",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Davis, Savanna",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "De Oliveira Lascolla, Lara",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Deleon-Barrera, Javier",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Dellaterra, Maclan",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "DeLuca, Chase",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "DePascale, Arianna",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Derival, Caleb",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Derival, Devin",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Devia, Angel",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Diefenbach, Alyxis",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Ellis-Pinales, Mathew",
+      "activity": "Turtles, Trails, and Tales"
+    },
+    {
+      "student": "Ellis, Emmerson",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "English, Ian",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Fagone, Jack",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Farnad, Kavan",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Farrell, Gabriella",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Felix Lugo, Joicy",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Fellows, Whitney",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Femia, Alexis",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Flynn, Caulin",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Foresteire, Zoey",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Francisco, Jakoby",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Frempon-Ambaah, Kwame",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Gauthier, Ethan",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Gelin-Rivera, Loammy",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Giridharan, Sumedha",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Gleba, Zoe",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Gray, Lillian",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Guerrero, Skyla",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Guiliano, Rosalie",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Guiliano, Vivienne",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Gulia, Luisa",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Hanlon, Jake",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Heartquist, Colin",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Hebert, Evangeline",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Hernandez, Jaelis",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Huoth, Katelyn",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Ilg, Gabriel",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Irizarry, Kalila",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Januskiewicz, Mason",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Jean Pierre, Shahera",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Jean, Rylee",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Jones, Cullen",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Jones, Grace",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Jordan, Jenneh",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Jordan, Rachel",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Keating, Olivia",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Kimani, Lyanne",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Klein, Christopher",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Kobu, Kayla",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Kong, Monireach",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Kordun, Victor",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Lambert, Grayson",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Lamontagne, Leah",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Landry, Delilah",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Lanthier, Skyler",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Lara, Jayliani",
+      "activity": "Adulting"
+    },
+    {
+      "student": "Lee, Boyang",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Lee, Haoyue",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Lefrancois, Grace",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Lesage, Reese",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Lessard, D'Andre",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "López, Arianna",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Lord, Carter",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Lugo, Dahlia",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Magat, Gabriel Jakob",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Magnan, Katelyn",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Marquez, Keith",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Martin, Nayeli",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "McClellan, Kayden",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Mills, Braedon",
+      "activity": "Nashua Soup Kitchen & Shelter"
+    },
+    {
+      "student": "Milt, Andrew",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Mitchell, Lillie",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Morning, Constance",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Motard, Grace",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Mwariri, Gabriella",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Naggenda, Hillary",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Nakimera, Kayla",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Narvaez, Esyasin",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Neves, Amber",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Newell, Samuel",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Ngugi, Brian",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Nguon, Matilda",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Niero, Ana",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Nieves, Jayvian",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Normandie, Lillygrace",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Nuth, Isabel",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "O'Day, Jakob",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Oeur, Jasmine",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Ortiz, Devin",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Pace, Andre",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Paquette, Bronwyn",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Patel, Arav",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Patel, Emma",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Patel, Josh",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Patel, Kabir",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Patel, Pari",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Patel, Veer",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Peña, Aureliano",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Peña, Linda",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Plourde, Makayla",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Porter, Alexandra",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Porter, Thomas",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Purrington, Owen",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Puzzo, Marco",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Radoncic, Charlton",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Rainho, Julianna",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Ramos, Samiiahlei",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Ricardo, Owen",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Rogers, Kason",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Rowe, Jeffrey",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "San, Sophia",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Santana-Mercado, Isabella",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Santiago, Claudio",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Santorsola, Alistarr",
+      "activity": "Local College Tours"
+    },
+    {
+      "student": "Santos, Jalen",
+      "activity": "Adventures on the Cape"
+    },
+    {
+      "student": "Scaffidi, Oliver",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Schule, Nolan",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Sciolla, Ella",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Shannon, Noah",
+      "activity": "IACS TV"
+    },
+    {
+      "student": "Sheehan, Richanni",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Silva, Matheus Gabriel",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Simoneau, Joshua",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Sinai, Jaylene",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "Song, Sam",
+      "activity": "Adulting"
+    },
+    {
+      "student": "Soun-Dam, Emmy",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Stapel, Max",
+      "activity": "All Things Golden (Stowe, Vermont)"
+    },
+    {
+      "student": "Strain, Paul",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Sullivan, Dylan",
+      "activity": "Fishin’"
+    },
+    {
+      "student": "Sullivan, Ryan",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Suon, Christina",
+      "activity": "Surfing & Beaches"
+    },
+    {
+      "student": "Thackaberry, Owyn",
+      "activity": "Medieval Times: The Dungeons and Dragons Experience"
+    },
+    {
+      "student": "Theum, Yanavious",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Thielo, Ava",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Tran, Adam",
+      "activity": "Court Sports & Smarts"
+    },
+    {
+      "student": "Tran, Eva",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Tucker, David",
+      "activity": "Animal Adventures"
+    },
+    {
+      "student": "Tudryn, Sam",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Uwase, Abigail",
+      "activity": "New York State of Mind"
+    },
+    {
+      "student": "Valdez Listro, Jordan",
+      "activity": "Cooking the Many Cuisines of Lowell"
+    },
+    {
+      "student": "Vredevoogd, Katie",
+      "activity": "Northern Exposure: Nature Photography"
+    },
+    {
+      "student": "Vuthy, Dalyla",
+      "activity": "Outdoor Mural Painting"
+    },
+    {
+      "student": "Wade, Braylen",
+      "activity": "Climb New Hampshire"
+    },
+    {
+      "student": "Walsh, Raymond",
+      "activity": "Sculpture and 3D Building"
+    },
+    {
+      "student": "White, Caden",
+      "activity": "Science & Adventure Learning"
+    },
+    {
+      "student": "Wilkins, Remi",
+      "activity": "Water Water Everyday"
+    },
+    {
+      "student": "Yost, Morgan",
+      "activity": "Science & Adventure Learning"
+    }
+  ]
+}

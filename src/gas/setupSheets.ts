@@ -16,11 +16,14 @@ export const ASSIGNED_ACTIVITY_COL = "activity";
 export const OVERRIDE_COL = "override";
 export const WEIGHT_HEADER = "wght";
 export const SCORE_HEADER = "score";
+export const LIVE_SCORE_HEADER = "liveScore";
+export const COMPUTED_SCORE_HEADER = "computedScore";
 export const STARTER_COLS = [
   IDCOL,
   ASSIGNED_ACTIVITY_COL,
   OVERRIDE_COL,
-  SCORE_HEADER,
+  LIVE_SCORE_HEADER,
+  COMPUTED_SCORE_HEADER,
 ];
 const WEIGHT_WIDTH = 30;
 const ACTIVITY_WIDTH = 100;
@@ -45,7 +48,11 @@ export function setupPreferencesSheet(
 
   sheet.setColumnWidth(columns.length, 100);
 
-  const scoreColumnIndex = STARTER_COLS.indexOf(SCORE_HEADER) + 1;
+  const liveScoreColumnIndex = STARTER_COLS.indexOf(LIVE_SCORE_HEADER) + 1;
+  const computedScoreColumnIndex =
+    STARTER_COLS.indexOf(COMPUTED_SCORE_HEADER) + 1;
+  sheet.setColumnWidth(liveScoreColumnIndex, 100);
+  sheet.setColumnWidth(computedScoreColumnIndex, 120);
   let scoreFormula: string[] = [];
   let activityMatchChecks: string[] = [];
   let peerMatchChecks: string[] = [];
@@ -169,11 +176,11 @@ export function setupPreferencesSheet(
   sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
 
   sheet
-    .getRange(2, scoreColumnIndex, lastRow - 1)
+    .getRange(2, liveScoreColumnIndex, lastRow - 1)
     .setFormula(combinedScoreFormula);
   log(
-    "setupPreferencesSheet: wrote score formula to column",
-    scoreColumnIndex,
+    "setupPreferencesSheet: wrote live score formula to column",
+    liveScoreColumnIndex,
     "covering",
     lastRow - 1,
     "rows"

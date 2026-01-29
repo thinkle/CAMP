@@ -3,6 +3,8 @@ import { createCrosses } from "../scheduler/hillclimbing/evolveSchedules";
 import { generate } from "../scheduler/hillclimbing/generator";
 import { mergeSchedules } from "../scheduler/hillclimbing/mergeSchedules";
 import { createScheduleInfo } from "../scheduler/hillclimbing/scheduleInfo";
+import { healMinimumSize } from "../scheduler/utils/healMinimumSize";
+import { repairSchedule } from "../scheduler/hillclimbing/repairSchedule";
 import {
   buildClusterInfoList,
   mapFamilyClusters,
@@ -17,11 +19,44 @@ import type {
   ScoringOptions,
 } from "../types";
 import { DEFAULT_SCORING_OPTIONS } from "../types";
+import {
+  MinimumSizeError,
+  CapacityError,
+} from "../scheduler/scoring/scoreSchedule";
 
 let running;
 
 const postMessage = (message: WorkerMessage) => {
   self.postMessage(message);
+};
+
+const logCapacityDiagnostics = (
+  label: string,
+  schedule: Schedule,
+  activities: Activity[]
+) => {
+  const totalCapacity = activities.reduce((sum, a) => sum + a.capacity, 0);
+  const activityCounts = new Map<string, number>();
+  for (const { activity } of activities) {
+    activityCounts.set(activity, 0);
+  }
+  for (const { activity } of schedule) {
+    activityCounts.set(activity, (activityCounts.get(activity) || 0) + 1);
+  }
+  const overbooked = activities
+    .map((a) => ({
+      activity: a.activity,
+      count: activityCounts.get(a.activity) || 0,
+      capacity: a.capacity,
+    }))
+    .filter((a) => a.count > a.capacity)
+    .sort((a, b) => b.count - b.capacity - (a.count - a.capacity))
+    .slice(0, 10);
+  console.log(label, {
+    students: schedule.length,
+    totalCapacity,
+    overbooked,
+  });
 };
 
 const stop = () => {
@@ -63,8 +98,9 @@ async function improveForever(
       } else {
         alg = schedule.alg + "improve";
       }
+      let candidateSchedule = improved;
       let improvedInfo = createScheduleInfo(
-        improved,
+        candidateSchedule,
         prefs,
         activities,
         schedule.alg,
@@ -72,16 +108,56 @@ async function improveForever(
         scoringOptions
       );
       if (improvedInfo.invalid) {
-        console.log(
-          "Worker stopping - improved schedule is invalid:",
-          improvedInfo.invalid
-        );
-        postMessage({
-          type: "doneImproving",
-          complete: true,
-          message: `Stopped - improvement would create invalid schedule: ${improvedInfo.invalid}`,
-        });
-        return;
+        if (improvedInfo.invalid === CapacityError) {
+          try {
+            const repaired = repairSchedule(candidateSchedule, prefs, activities);
+            candidateSchedule = repaired;
+            improvedInfo = createScheduleInfo(
+              candidateSchedule,
+              prefs,
+              activities,
+              schedule.alg + " (repaired)",
+              schedule.generation + 1,
+              scoringOptions
+            );
+          } catch (err) {
+            // Fall through to invalid handling below.
+          }
+        }
+        if (improvedInfo.invalid === MinimumSizeError) {
+          const healed = healMinimumSize(candidateSchedule, prefs, activities);
+          if (healed) {
+            candidateSchedule = healed;
+            improvedInfo = createScheduleInfo(
+              candidateSchedule,
+              prefs,
+              activities,
+              schedule.alg + " (healed)",
+              schedule.generation + 1,
+              scoringOptions
+            );
+          }
+        }
+
+        if (improvedInfo.invalid) {
+          console.log(
+            "Worker stopping - improved schedule is invalid:",
+            improvedInfo.invalid
+          );
+          if (improvedInfo.invalid === CapacityError) {
+            logCapacityDiagnostics(
+              "Worker capacity diagnostics (improve)",
+              candidateSchedule,
+              activities
+            );
+          }
+          postMessage({
+            type: "doneImproving",
+            complete: true,
+            message: `Stopped - improvement would create invalid schedule: ${improvedInfo.invalid}`,
+          });
+          return;
+        }
       }
       if (improvedInfo.score > schedule.score) {
         schedule = improvedInfo;

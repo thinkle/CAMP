@@ -154,8 +154,56 @@ export function readData(keepEmpty = false): PreferenceData {
   // Now since we may have removed students, we may have preferences for non-existent peers.
   // Let's remove them...
   const validIdentifiers = new Set(studentPreferences.map((s) => s.identifier));
+  let invalidPeerCount = 0;
+  const invalidPeers = new Set<string>();
   for (let student of studentPreferences) {
-    student.peer = student.peer.filter((p) => validIdentifiers.has(p.peer));
+    const originalLength = student.peer.length;
+    student.peer = student.peer.filter((p) => {
+      const isValid = validIdentifiers.has(p.peer);
+      if (!isValid && p.peer) {
+        invalidPeers.add(String(p.peer));
+      }
+      return isValid;
+    });
+    invalidPeerCount += originalLength - student.peer.length;
+  }
+
+  const validActivities = new Set(activities.map((a) => a.activity));
+  let invalidActivityCount = 0;
+  const invalidActivities = new Set<string>();
+  for (let student of studentPreferences) {
+    const originalLength = student.activity.length;
+    student.activity = student.activity.filter((a) => {
+      const isValid = validActivities.has(a.activity);
+      if (!isValid && a.activity) {
+        invalidActivities.add(String(a.activity));
+      }
+      return isValid;
+    });
+    invalidActivityCount += originalLength - student.activity.length;
+  }
+
+  if (invalidPeerCount > 0 || invalidActivityCount > 0) {
+    const maxList = 25;
+    const peerList = Array.from(invalidPeers);
+    const activityList = Array.from(invalidActivities);
+    console.warn(
+      `readData: removed ${invalidPeerCount} invalid peer preferences and ${invalidActivityCount} invalid activity preferences`
+    );
+    if (invalidPeerCount > 0) {
+      console.warn(
+        `readData: invalid peers (${peerList.length} unique)`,
+        peerList.slice(0, maxList),
+        peerList.length > maxList ? `(+${peerList.length - maxList} more)` : ""
+      );
+    }
+    if (invalidActivityCount > 0) {
+      console.warn(
+        `readData: invalid activities (${activityList.length} unique)`,
+        activityList.slice(0, maxList),
+        activityList.length > maxList ? `(+${activityList.length - maxList} more)` : ""
+      );
+    }
   }
 
   if (preferenceMode !== "peer-only") {

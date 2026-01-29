@@ -49,10 +49,23 @@ export const scoreSchedule = (
   studentPreferences: StudentPreferences[],
   scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
 ): number => {
-  let peerScore = 0;
-  let activityScore = 0;
-  let penaltyScore = 0;
+  return scoreScheduleWithBreakdown(
+    schedule,
+    studentPreferences,
+    scoringOptions
+  ).totalScore;
+};
 
+export type ScheduleScoreBreakdown = {
+  totalScore: number;
+  perStudentScores: Map<string, number>;
+};
+
+export const scoreScheduleWithBreakdown = (
+  schedule: Schedule,
+  studentPreferences: StudentPreferences[],
+  scoringOptions: ScoringOptions = DEFAULT_SCORING_OPTIONS
+): ScheduleScoreBreakdown => {
   // Precompute studentPreferences map
   const preferencesMap = new Map(
     studentPreferences.map((prefs) => [prefs.identifier, prefs])
@@ -67,28 +80,30 @@ export const scoreSchedule = (
     activityRosters.get(activity)!.add(student);
   }
 
-  let individualScores: number[] = [];
+  const perStudentScores = new Map<string, number>();
   const matchState = new Map<
     string,
     { activityMatch: boolean; peerMatches: number }
   >();
   for (const pref of studentPreferences) {
     matchState.set(pref.identifier, { activityMatch: false, peerMatches: 0 });
+    perStudentScores.set(pref.identifier, 0);
   }
 
-  // Calculate scores
+  const baseScores = new Map<string, number>();
+  const scoredStudents = new Set<string>();
+
+  // Calculate base scores (activity + peer)
   for (let { student, activity } of schedule) {
     const prefs = preferencesMap.get(student);
     if (!prefs) continue;
 
     const state = matchState.get(student);
-
-    let individualScore = 0;
+    let individualScore = perStudentScores.get(student) || 0;
 
     // Activity score
     const activityPref = prefs.activity.find((a) => a.activity === activity);
     if (activityPref) {
-      activityScore += activityPref.weight;
       individualScore += activityPref.weight;
       if (state) {
         state.activityMatch = true;
@@ -109,7 +124,6 @@ export const scoreSchedule = (
             : scoringOptions.nonMutualPeerMultiplier;
           const adjustedWeight = peer.weight * weightAdjustment;
 
-          peerScore += adjustedWeight;
           individualScore += adjustedWeight;
           if (state) {
             state.peerMatches += 1;
@@ -118,32 +132,49 @@ export const scoreSchedule = (
       }
     }
 
-    individualScores.push(individualScore);
+    perStudentScores.set(student, individualScore);
+    baseScores.set(student, individualScore);
+    scoredStudents.add(student);
   }
 
-  // Apply penalties based on match state and individual scores
+  // Apply penalties based on match state
   if (matchState.size) {
-    for (const { activityMatch, peerMatches } of matchState.values()) {
+    for (const [studentId, { activityMatch, peerMatches }] of matchState) {
+      let score = perStudentScores.get(studentId) || 0;
       if (!activityMatch && scoringOptions.noActivityPenalty) {
-        penaltyScore += scoringOptions.noActivityPenalty;
+        score -= scoringOptions.noActivityPenalty;
       }
       if (peerMatches === 0 && scoringOptions.noPeerPenalty) {
-        penaltyScore += scoringOptions.noPeerPenalty;
+        score -= scoringOptions.noPeerPenalty;
       }
+      perStudentScores.set(studentId, score);
     }
   }
 
-  // Apply low score threshold penalty
+  // Apply low score threshold penalty (only for scored students)
   if (
     scoringOptions.lowScoreThreshold > 0 &&
     scoringOptions.lowScorePenalty > 0
   ) {
-    for (const score of individualScores) {
-      if (score < scoringOptions.lowScoreThreshold) {
-        penaltyScore += scoringOptions.lowScorePenalty;
+    for (const studentId of scoredStudents) {
+      const score = baseScores.get(studentId);
+      if (score !== undefined && score < scoringOptions.lowScoreThreshold) {
+        const current = perStudentScores.get(studentId) || 0;
+        perStudentScores.set(
+          studentId,
+          current - scoringOptions.lowScorePenalty
+        );
       }
     }
   }
 
-  return Math.floor(activityScore + peerScore - penaltyScore);
+  let totalScore = 0;
+  for (const score of perStudentScores.values()) {
+    totalScore += score;
+  }
+
+  return {
+    totalScore: Math.floor(totalScore),
+    perStudentScores,
+  };
 };

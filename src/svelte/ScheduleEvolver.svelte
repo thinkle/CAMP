@@ -13,7 +13,6 @@
     ScheduleInfo,
     ClusterInfo,
   } from "./../types.ts";
-  import { compareSchedules } from "../scheduler/hillclimbing/compareSchedules.js";
 
   export let data: PreferenceData | null = null;
 
@@ -25,45 +24,22 @@
   export let evolveScheduleGroup: (population: ScheduleInfo[]) => void;
 
   // Evolve schedules
-  const evolveSmatteringOfTopSchedules = (candidatePoolSize = 0.25) => {
-    if (schedules.length > 2) {
-      let sortedSchedules = [...schedules].sort((a, b) => b.score - a.score);
-      let candidatePool = sortedSchedules.slice(
-        0,
-        Math.floor(sortedSchedules.length * candidatePoolSize)
-      );
-      let toSelect = Math.min(3 + Math.random() * 5, candidatePool.length);
-      // Include best schedule in population...
-      let selection = [sortedSchedules[0]];
-      // Now compute similarity of each schedule to the best schedule
-      let similarityScores = candidatePool.map((s) =>
-        compareSchedules(s.schedule, sortedSchedules[0].schedule)
-      );
-      // Now sort by similarity
-      let sortedSimilarityScores = similarityScores
-        .map((s, i) => ({
-          score: s.assignmentSimilarity + s.cohortSimilarity,
-          index: i,
-          schedule: candidatePool[i],
-        }))
-        .sort((a, b) => b.score - a.score);
-      // Ensure we have at least toSelect candidates
-      const stepSize =
-        Math.floor(sortedSimilarityScores.length / toSelect) || 1;
-
-      // Select evenly spaced schedules across the sorted similarity scores
-      for (let i = 0; i < toSelect; i++) {
-        let index = Math.min(i * stepSize, sortedSimilarityScores.length - 1);
-        selection.push(sortedSimilarityScores[index].schedule);
-      }
-      sortedSimilarityScores
-        .slice(0, toSelect)
-        .forEach((s) => selection.push(s.schedule));
-
-      let population = Array.from(selection);
-
-      evolveScheduleGroup(population);
+  const evolveSmatteringOfTopSchedules = () => {
+    if (schedules.length <= 2) return;
+    const sortedSchedules = [...schedules].sort((a, b) => b.score - a.score);
+    const topCount = Math.min(
+      Math.max(5, Math.ceil(sortedSchedules.length * 0.1)),
+      sortedSchedules.length
+    );
+    const randomCount = Math.min(5, sortedSchedules.length - topCount);
+    const selection = sortedSchedules.slice(0, topCount);
+    const remaining = sortedSchedules.slice(topCount);
+    while (selection.length < topCount + randomCount && remaining.length) {
+      const index = Math.floor(Math.random() * remaining.length);
+      selection.push(remaining[index]);
+      remaining.splice(index, 1);
     }
+    evolveScheduleGroup(selection);
   };
 
   // Select an unexplored cluster and evolve it
@@ -143,7 +119,7 @@
   <summary>Schedule Evolver</summary>
   <Button
     disabled={schedules.length < 4}
-    on:click={() => evolveSmatteringOfTopSchedules(0.25)}
+    on:click={() => evolveSmatteringOfTopSchedules()}
   >
     Evolve Some Schedules
   </Button>

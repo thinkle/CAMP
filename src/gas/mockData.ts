@@ -9,7 +9,6 @@ import {
   IDCOL,
   ASSIGNED_ACTIVITY_COL,
   OVERRIDE_COL,
-  SCORE_HEADER,
 } from "../gas/setupSheets";
 import { generateAllMockData } from "../scheduler/mocks/mockDataGenerator";
 import type { StudentPreferences, Activity } from "../types";
